@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from icecream import ic
 import bcrypt
+import os
 def main():
 
   def hash_password(password):
@@ -10,7 +11,6 @@ def main():
       ic (hashed_password)
       return hashed_password
 
-  ic(hash_password(1234))
-  
+  ic(os.urandom(32))
 if __name__ == "__main__":
     main()

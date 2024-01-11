@@ -8,7 +8,7 @@ from datetime import datetime,timedelta
 import bcrypt
 import mysql.connector
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
-
+import os
 # your mysql database credentials here 
 host = '127.0.0.1'
 user = 'root'
@@ -33,10 +33,11 @@ app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "mysql://root:1234@localhost/library"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["JWT_SECRET_KEY"] = "FUCKthatSHIT"
+CORS(app)
 jwt = JWTManager(app)
 db = SQLAlchemy(app)
 # create model book 
-
+secret_key = app.config["JWT_SECRET_KEY"]
 
 
 
@@ -58,6 +59,7 @@ class Customer(db.Model):
     name = db.Column(db.String(50),nullable = False)
     email =db.Column(db.String(100),nullable = False,unique = True) 
     password = db.Column(db.String(500),nullable = False)
+    salt = db.Column(db.LargeBinary,nullable = False)
     city  = db.Column(db.String(50),nullable = False)
     age = db.Column(db.Integer,nullable = False)
     #connect to loans and enable the loan object created to reach the corresponding customer's data 
@@ -86,10 +88,13 @@ class Loan(db.Model):
 
 
 
-def hash_password(password):
+def hash_password(password,salt = None):
     # password = str(password)
-    hashed_password = bcrypt.hashpw(password.encode("utf-8"),bcrypt.gensalt())
-    return hashed_password.decpde("utf-8")
+    if salt == None:
+        salt = bcrypt.gensalt()
+    encrypted_pwd =password.encode("utf-8")
+    hashed_password = bcrypt.hashpw(encrypted_pwd,salt)
+    return salt,hashed_password
 
 # macking the crud
 @app.route("/")
@@ -121,12 +126,13 @@ def signup():
     if request.method == "POST":
         customer_name = request.json["name"]
         email = request.json["email"]
-        password = hash_password(request.json["password"])
+        salt,password = hash_password(request.json["password"])
         city = request.json["city"]    
         age = request.json["age"]
+        
         if Customer.query.filter_by(email = email).count() > 0:
             return{"messege":"email already in use"}
-        new_customer = Customer(name = customer_name,email = email,password = password,city = city,age = age)
+        new_customer = Customer(name = customer_name,email = email,password = password,salt = salt,city = city,age = age)
         db.session.add(new_customer)
         db.session.commit()
         return {"messege": "customer added successfuly" }
@@ -140,10 +146,12 @@ def login():
         customer = Customer.query.filter_by(email = email).first()
         if customer:
             pwd = customer.password
+            salt = customer.salt
+            trash,hashed_password = hash_password(password,salt) 
+            ic(hashed_password)
             ic(pwd)
-            ic(hash_password(password))
-            if pwd == hash_password(password):
-            
+            hashed_password_str = hashed_password.decode("utf-8")
+            if pwd == hashed_password_str:
                 access_token = create_access_token(identity=email)
                 return jsonify({"access_token":access_token})
 
@@ -211,11 +219,12 @@ def show_customers():
     temp = Customer.query.all()
     customers = []
     for customer in temp:
-        id = customer.id
-        customer_name = customer.name
-        city = customer.city
-        age = customer.age
-        customers.append({"id":id,"customer_name":customer_name,"city":city,"age":age})
+        customers.append({"id":customer.id,
+                          "customer_name":customer.name,
+                          "email":customer.email,
+                          "city":customer.city,
+                          "age":customer.age})
+    
     return jsonify(customers)
 
 
@@ -367,3 +376,4 @@ if __name__ == "__main__":
     with app.app_context():
         db.create_all()
     app.run(debug=True)
+    os.system('cls')
