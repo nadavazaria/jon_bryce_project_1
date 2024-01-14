@@ -9,23 +9,19 @@ import bcrypt
 import mysql.connector
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 import os
-# your mysql database credentials here 
-host = '127.0.0.1'
-user = 'root'
-password = '1234'
 
-# connect to the mysql workbench  
-con = mysql.connector.connect(
-    host = host,
-    user = user,
-    password = password
-)
-cur = con.cursor()
-# make a new schema called library using basic SQL 
-new_schema = 'library'
-schema_query = f"CREATE DATABASE IF NOT EXISTS {new_schema}"
-cur.execute(schema_query)
-con.commit()
+# # connect to the mysql workbench  
+# con = mysql.connector.connect(
+#     host = host,
+#     user = user,
+#     password = password
+# )
+# cur = con.cursor()
+# # make a new schema called library using basic SQL 
+# new_schema = 'library'
+# schema_query = f"CREATE DATABASE IF NOT EXISTS {new_schema}"
+# cur.execute(schema_query)
+# con.commit()
 
 
 # connecting my app to flask and to the mysql database that we just created 
@@ -166,8 +162,8 @@ def login():
 def make_loan():
     if request.method == "POST":
         book_name = request.json["book_name"]
-        customer_name = request.json["customer_name"]
-        customer = Customer.query.filter_by(name = customer_name ).first()
+        email = request.json["email"]
+        customer = Customer.query.filter_by(email = email ).first()
         book_to_loan = Book.query.filter_by(name = book_name ).first()
         if book_to_loan and customer:
             new_loan = Loan(custID =customer.id,bookID = book_to_loan.id)
@@ -185,7 +181,8 @@ def all_books():
     for book in listed_books:
         list.append({"book_name":book.name,
                      "author":book.author,
-                     "type":book.type})
+                     "type":book.type,
+                     "book_id":book.id})
     return jsonify(list)
 
 
@@ -209,7 +206,7 @@ def all_laons():
             "list_of_loans":list_of_loans,
             "late_loans": late_loans
         }
-    ic(result)
+    
     return jsonify(result)
 
 

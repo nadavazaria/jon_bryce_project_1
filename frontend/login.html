@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<!-- axios.get(MY_SERVER).then(res) -->
+</head>
+<body>
+  <h1>Library Management System</h1>
+  
+  <h2>login</h2>
+  <form id ="signupForm"action="/signup",method = "post"></form>
+  <label for="email">Email:</label>
+  <input type="email" name="email" id = "email" required><br>
+  <label for="password">Password:</label>
+  <input type="password" name="password" id = "password" required><br>
+  <!-- Use a button with type="button" to handle click event -->
+  <button type="button" onclick="submit_login_form()">login</button>
+</form>  
+
+<button onclick="get_customers()">print_customers</button>
+<button onclick="get_books()">print_books</button>
+  <form id="signupForm">
+<div id = "display"></div>
+<script>
+  const MY_SERVER = "http://127.0.0.1:5000"
+  function submit_login_form() {
+            // Get form data
+            const formData = {
+                email: document.getElementById("email").value,
+                password: document.getElementById("password").value
+            }
+
+            // Send a POST request using Axios
+            axios.post(MY_SERVER + "/login", formData)
+                .then(response => {
+                    console.log(response.data);
+                    // Handle success, e.g., show a success message to the user
+                })
+                .catch(error => {
+                    console.error(error.response.data);
+                    // Handle error, e.g., show an error message to the user
+                });
+        }
+  </script>
+<body>
+  
+</html>

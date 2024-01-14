@@ -1,11 +1,103 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <!-- axios.get(MY_SERVER).then(res) -->
 </head>
+
 <body>
-    "hello"
-</body>
+  <button onclick="get_customers()">print_customers</button>
+  <button onclick="show_loans()">print loans</button>
+  <button onclick="show_books()">print_books</button>
+
+  <form action="/add_book" method="post">
+    book name: <input name="book_name" id="book_name" type="text"><br>
+    author name: <input name="author_name" id="author_name" type="text"><br>
+    year published: <input name="year_publihsed" id="year_published" type="number"><br>
+    book type :
+    <select name="book_type" id="book_type">
+      <option value="1">1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+    </select>
+  </form>
+  <button onclick="add_book()">submit book</button>
+  <div id="display"></div>
+  <script>
+    const MY_SERVER = "http://127.0.0.1:5000"
+    const get_customers = () => {
+      axios.get(MY_SERVER + "/customers")
+        .then(function (response) {
+          display.innerHTML = ""
+          response.data.forEach(customer => {
+            display.innerHTML += `<div>id: ${customer.id} 
+         ,name: ${customer.customer_name}
+         ,email: ${customer.email}
+         ,city: ${customer.city}
+         ,age: ${customer.age}
+         </div>
+         `}).join("")
+        })
+    }
+    const show_books = () => {
+      axios.get(MY_SERVER + "/books_in_stock")
+      .then(function (response) {
+        display.innerHTML = ""
+          response.data.forEach(book => {
+            display.innerHTML += `<div>id: ${book.book_id} 
+         ,name: ${book.book_name}
+         ,author: ${book.author}
+         ,type: ${book.type}
+         </div>
+         `}).join("")
+        })
+    }
+
+    const show_loans = () => {
+      axios.get(MY_SERVER + "/loans")
+      .then(function (response) {
+        display.innerHTML = "<h1>ongoing loans</h1>"
+          response.data["list_of_loans"].forEach(loan => {
+            display.innerHTML += `
+            <div>customer name: ${loan.customer_name} 
+         ,book name: ${loan.book_name}
+         ,time left: ${loan.time_left}
+         </div>
+         `})
+         display.innerHTML += "<h1>late loans</h1>"
+         response.data["late_loans"].forEach(loan=>{
+          display.innerHTML += `
+          customer name: ${loan.coustomer_name},
+          book name: ${loan.book_name},
+          late by: ${loan.late_by}
+          `
+         })
+        })
+    }
+
+
+    const add_book = () => {
+      const formData = {
+        name: document.getElementById("book_name").value,
+        author: document.getElementById("author_name").value,
+        year_published: document.getElementById("year_published").value,
+        type: document.getElementById("book_type").value
+      }
+      axios.post(MY_SERVER + "/add_book", formData)
+        .then(res => {
+          console.log(res.data)
+        })
+        .catch(error => {
+          console.error(error.response.data)
+        })
+
+    }
+  </script>
+
+  <body>
+
 </html>
