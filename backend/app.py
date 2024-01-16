@@ -1,6 +1,6 @@
 import json
 from math import floor
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request,session
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from icecream import ic
@@ -94,6 +94,7 @@ def hash_password(password,salt = None):
 
 # macking the crud
 @app.route("/")
+@jwt_required
 def home_page():
     return "this will be nice eventualy"
 
@@ -144,8 +145,6 @@ def login():
             pwd = customer.password
             salt = customer.salt
             trash,hashed_password = hash_password(password,salt) 
-            ic(hashed_password)
-            ic(pwd)
             hashed_password_str = hashed_password.decode("utf-8")
             if pwd == hashed_password_str:
                 access_token = create_access_token(identity=email)
@@ -226,24 +225,25 @@ def show_customers():
 
 
 
-@app.route("/return_book",methods = ["DELETE"])
+@app.route("/return_book",methods = ["DELETE","POST"])
 def book_update():
     book_to_return = Book.query.filter_by(name = request.json["book_name"]).first()
-    returning_customer = Customer.query.filter_by(name = request.json["customer_name"]).first()
+    returning_customer = Customer.query.filter_by(email = request.json["email"]).first()
     loan = Loan.query.filter_by(bookID = book_to_return.id,custID = returning_customer.id).first()
     if book_to_return and returning_customer and loan:    
         number_of_loans = Loan.query.filter_by(bookID = book_to_return.id,custID = returning_customer.id).count()
 
         # find out what to do with that list tho...
         if number_of_loans > 1:
+            ic("more then one loan")
             list_of_loans = Loan.query.filter_by(bookID = book_to_return.id,custID = returning_customer.id).all() 
             loans = [] 
             for loan in list_of_loans:
                 book_to_return = Book.query.get(loan.bookID)
                 returning_customer = Customer.query.get(loan.custID)
-                db.session.delete(loan)
-                db.session.commit()
-                loans.append({"book_name":book_to_return.name,"returning_customer":returning_customer.name,"return_date":loan.return_date})
+                # db.session.delete(loan)
+                # db.session.commit()
+                loans.append({"book_name":book_to_return.name,"returning_customer":returning_customer.name,"return_date":loan.return_date,"loan_id":loan.id})
                 
             return jsonify(loans)
 
@@ -255,9 +255,14 @@ def book_update():
             return {"messege":f"{book_to_return.name} returned by {returning_customer.name} successfuly"}
     else:
         return {"messege":"there is no such loan here" }
-    
-
-
+    # /delete_loan_by_id
+@app.route(f"/delete_loan_by_id/<int:loan_id>",methods = ["DELETE"])
+def delete_loan_by_id(loan_id):
+    ic(loan_id)
+    loan_to_del = Loan.query.get(loan_id)
+    db.session.delete(loan_to_del)
+    db.session.commit()
+    return {"messege":f"the loan by {loan_to_del.customer.name} on the book {loan_to_del.book.name} has been resolved"}
 @app.route("/find_book",methods = ["POST","GET"])
 def find_book():
     book_to_find = request.json["book_name"]

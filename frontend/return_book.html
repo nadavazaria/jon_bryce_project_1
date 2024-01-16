@@ -3,29 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>make loan</title>
+    <title>return book</title>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <!-- axios.get(MY_SERVER).then(res) -->
 </head>
 <body>
   <h1>Library Management System</h1>
   
-  <h2>make loan</h2>
+  <h2>return book</h2>
   <div id = "display"></div>
 
-  <form id ="signupForm"action="/make_loan",method = "post"></form>
+  <form id ="return_book"action="/return_book",method = "post"></form>
   <label for="email">Email:</label>
   <input type="email" name="email" id = "email" required><br>
   <label for="book_name">book name:</label>
   <input type="text" name="book_name" id = "book_name" required><br>
   <!-- Use a button with type="button" to handle click event -->
-  <button type="button" onclick="submit_loan()">make loan</button>
+  <button type="button" onclick="delete__loan()">return book</button>
 </form>  
 
 
 <script>
   const MY_SERVER = "http://127.0.0.1:5000"
-  function submit_loan() {
+  function delete__loan() {
             // Get form data
             const formData = {
                 email: document.getElementById("email").value,
@@ -33,15 +33,28 @@
             }
 
             // Send a POST request using Axios
-            axios.post(MY_SERVER + "/make_loan", formData)
+            axios.post(MY_SERVER + "/return_book", formData)
                 .then(response => {
-                    display.innerHTML = `<h3>${response.data["messege"]}</h3>`
+                    display.innerHTML = ""
+                    response.data.forEach(loan => {
+                        
+                        display.innerHTML += `<div> book name: ${loan.book_name},rented by: ${loan.returning_customer},return by: ${loan.return_date}\
+                            <button onclick = delete_loan_by_id(${loan.loan_id})> return this book </button>
+                            </div>`
+                    });
                     // Handle success, e.g., show a success message to the user
                 })
                 .catch(error => {
                     console.error(error.data);
                     // Handle error, e.g., show an error message to the user
                 });
+        }
+        const delete_loan_by_id = (loan_id) =>{
+            axios.delete(MY_SERVER + `/delete_loan_by_id/${loan_id}`)
+                .then(response => {
+                    // console.log(response.data)
+                    display.innerHTML += response["messege"]
+                })
         }
   </script>
 <body>
