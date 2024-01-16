@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>home page</title>
+  <title>admin page</title>
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <!-- axios.get(MY_SERVER).then(res) -->
 </head>
@@ -13,6 +13,7 @@
   <button onclick="get_customers()">print_customers</button>
   <button onclick="show_loans()">print loans</button>
   <button onclick="show_books()">print_books</button>
+  <button onclick="search_book()">search book</button>
 
   <form action="/add_book" method="post">
     book name: <input name="book_name" id="book_name" type="text"><br>
@@ -27,6 +28,7 @@
   </form>
 
   <button onclick="add_book()">submit book</button>
+  <button onclick="edit_book('warbreaker')">edit warbreaker</button>
   <div id="display"></div>
   <script>
     const MY_SERVER = "http://127.0.0.1:5000"
@@ -96,6 +98,57 @@
           console.error(error.response.data)
         })
 
+    }
+    const search_book = () =>{
+      const formData = {
+        book_name: document.getElementById("book_name").value,
+        author: document.getElementById("author_name").value,
+        year_published: document.getElementById("year_published").value,
+        type: document.getElementById("book_type").value
+      }
+      axios.post(MY_SERVER + "/find_book", formData)
+        .then(res => {
+          if (res.data["messege"] != null){
+            display.innerHTML = res.data["messege"]
+          }else{
+            display.innerHTML = " "
+            res.data.forEach(book =>{
+              display.innerHTML += `
+              book name: ${book.book_name},
+              by the author: ${book.author},
+            released in thee year: ${book.year_published}
+            <button onclick = edit_book(${book.book_name})>edit book</button>
+            <button onclick =  delete_book(${book.book_name})>delete book</button>`
+            
+            
+          })
+        }
+        })
+        .catch(error => {
+          console.error(error.response.data)
+        })
+    }
+
+
+    const edit_book = (book_name1) => {
+      const formData = {
+        book_name :book_name1,
+        new_name: document.getElementById("book_name").value,
+        new_author: document.getElementById("author_name").value,
+        new_year_published: document.getElementById("year_published").value,
+        new_type: document.getElementById("book_type").value
+      }
+      axios.put(MY_SERVER + "/edit_book", formData)
+        .then(res => {
+          display.innerHTML = res.data["messege"]
+        })
+        .catch(error => {
+          console.error(error.response.data)
+        })
+    }
+
+    const delete_book = () => {
+      
     }
   </script>
 

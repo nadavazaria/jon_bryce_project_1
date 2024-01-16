@@ -1,6 +1,6 @@
 import json
 from math import floor
-from flask import Flask, jsonify, request,session
+from flask import Flask, jsonify, redirect, render_template, request,session, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from icecream import ic
@@ -263,23 +263,30 @@ def delete_loan_by_id(loan_id):
     db.session.delete(loan_to_del)
     db.session.commit()
     return {"messege":f"the loan by {loan_to_del.customer.name} on the book {loan_to_del.book.name} has been resolved"}
+
+
 @app.route("/find_book",methods = ["POST","GET"])
 def find_book():
-    book_to_find = request.json["book_name"]
-    book_to_find = Book.query.filter_by(name = book_to_find).all()
-    ic(book_to_find)
-    books_to_find = []
-    for book in book_to_find:
-        book_name = book.name
-        author = book.author
-        year_published = book.year_published
-        books_to_find.append({"book_name":book_name,"author":author,"year_published":year_published})
-    if len(books_to_find) == 0:
-        return {"messege":"no such books here"}
-    return jsonify(books_to_find)
+    if request.method == "POST":    
+        book_name = request.json["book_name"]
+        books_to_find = Book.query.filter_by(name = book_name).all()
+        # ic(book_name)
+        if len(books_to_find) == 0:
+            return  {"messege":"book not found"}
+        output = []
+        
+        for book in books_to_find: 
+            # ic(book)
+            output.append({"book_name":book.name,"author":book.author,"year_published":book.year_published})
+            ic(output)
+        # if len(books_to_find) == 0:
+        #     return {"messege":"no such books here"}
+        return jsonify(output)
+    return render_template("index.html")
 
 @app.route("/edit_customer",methods = ["PUT"])
 def edit_customer():
+
     customer_to_edit = request.json["customer_name"]
     edited_customer = Customer.query.filter_by(name = customer_to_edit).first()
     if edited_customer:
@@ -298,6 +305,7 @@ def edit_customer():
 
 @app.route("/edit_book",methods = ["PUT"])
 def edit_book():
+    ic("in edit")
     book_to_edit = request.json["book_name"]
     edited_book = Book.query.filter_by(name = book_to_edit).first()
     if edited_book:
