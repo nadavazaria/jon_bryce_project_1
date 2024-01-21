@@ -10,10 +10,25 @@
 </head>
 
 <body>
-  <button onclick="get_customers()">print_customers</button>
+  <div>
+    <a href="index.html"><button>home page</button></a>
+
+    <a href="login.html"><button>login</button></a>
+    <a href="signup.html"><button>signup</button></a>
+    <a href="return_book.html"><button>return_book</button></a>
+    <a href="books.html"><button>books</button></a>
+    <a href="customers.html"><button>customers</button></a>
+    <!-- <a href=""><button></button></a> -->
+  </div>
+  <hr>
+  <a href="customers.html"><button>customers</button></a>
   <button onclick="show_loans()">print loans</button>
   <button onclick="show_books()">print_books</button>
   <button onclick="search_book()">search book</button>
+  <button onclick="change_book(pending_book['book_name'])">search book</button>
+
+  <!-- <button onclick = "edit_book('name of the wind')">this butijfoa[bf</button> -->
+
 
   <form action="/add_book" method="post">
     book name: <input name="book_name" id="book_name" type="text"><br>
@@ -26,44 +41,38 @@
       <option value="3">3</option>
     </select>
   </form>
-
   <button onclick="add_book()">submit book</button>
-  <button onclick="edit_book('warbreaker')">edit warbreaker</button>
+  <!-- <button onclick="edit_book('warbreaker')">edit warbreaker</button> -->
+
   <div id="display"></div>
+
+
   <script>
     const MY_SERVER = "http://127.0.0.1:5000"
-    const get_customers = () => {
-      axios.get(MY_SERVER + "/customers")
+    let pending_book = { "book_name": "", "book_id": "" }
+
+
+
+    const show_books = () => {
+      console.log(pending_book)
+      axios.get(MY_SERVER + "/books_in_stock")
         .then(function (response) {
           display.innerHTML = ""
-          response.data.forEach(customer => {
-            display.innerHTML += `<div>id: ${customer.id} 
-         ,name: ${customer.customer_name}
-         ,email: ${customer.email}
-         ,city: ${customer.city}
-         ,age: ${customer.age}
-         </div>
-         `}).join("")
-        })
-    }
-    const show_books = () => {
-      axios.get(MY_SERVER + "/books_in_stock")
-      .then(function (response) {
-        display.innerHTML = ""
           response.data.forEach(book => {
             display.innerHTML += `<div>id: ${book.book_id} 
          ,name: ${book.book_name}
          ,author: ${book.author}
          ,type: ${book.type}
          </div>
-         `}).join("")
+         `})
         })
     }
 
+
     const show_loans = () => {
       axios.get(MY_SERVER + "/loans")
-      .then(function (response) {
-        display.innerHTML = "<h1>ongoing loans</h1>"
+        .then(function (response) {
+          display.innerHTML = "<h1>ongoing loans</h1>"
           response.data["list_of_loans"].forEach(loan => {
             display.innerHTML += `
             <div>customer name: ${loan.customer_name} 
@@ -71,14 +80,14 @@
          ,time left: ${loan.time_left}
          </div>
          `})
-         display.innerHTML += "<h1>late loans</h1>"
-         response.data["late_loans"].forEach(loan=>{
-          display.innerHTML += `
+          display.innerHTML += "<h1>late loans</h1>"
+          response.data["late_loans"].forEach(loan => {
+            display.innerHTML += `
           customer name: ${loan.coustomer_name},
           book name: ${loan.book_name},
           late by: ${loan.late_by}
           `
-         })
+          })
         })
     }
 
@@ -99,7 +108,10 @@
         })
 
     }
-    const search_book = () =>{
+
+
+    const search_book = () => {
+
       const formData = {
         book_name: document.getElementById("book_name").value,
         author: document.getElementById("author_name").value,
@@ -108,21 +120,21 @@
       }
       axios.post(MY_SERVER + "/find_book", formData)
         .then(res => {
-          if (res.data["messege"] != null){
+          if (res.data["messege"] != null) {
             display.innerHTML = res.data["messege"]
-          }else{
+          } else {
             display.innerHTML = " "
-            res.data.forEach(book =>{
+            res.data.forEach(book => {
               display.innerHTML += `
+              <div onclick = "pending(${book.book_name},${book.book_id})">
               book name: ${book.book_name},
               by the author: ${book.author},
-            released in thee year: ${book.year_published}
-            <button onclick = edit_book(${book.book_name})>edit book</button>
-            <button onclick =  delete_book(${book.book_name})>delete book</button>`
-            
-            
-          })
-        }
+              released in thee year: ${book.year_published}
+              </div>
+              `
+
+            })
+          }
         })
         .catch(error => {
           console.error(error.response.data)
@@ -130,9 +142,16 @@
     }
 
 
-    const edit_book = (book_name1) => {
+    const pending = (book_name, book_id) => {
+      pending_book["book_name"] = book_name
+      pending_book["book_id"] = book_id
+    }
+
+
+
+    const change_book = (book_name1) => {
       const formData = {
-        book_name :book_name1,
+        book_name: book_name1,
         new_name: document.getElementById("book_name").value,
         new_author: document.getElementById("author_name").value,
         new_year_published: document.getElementById("year_published").value,
@@ -147,9 +166,33 @@
         })
     }
 
-    const delete_book = () => {
-      
+
+    const delete_book_by_id = (book_id) => {
+      axios.delete(MY_SERVER + `/delete_book_by_id/${book_id}`)
+        .then(response => {
+          // console.log(response.data)
+          display.innerHTML += response["messege"]
+        })
     }
+    const get_customers = () => {
+      axios.get(MY_SERVER + "/customers")
+        .then(function (response) {
+          display.innerHTML = `<h1>curremt customers</h1>`
+          response.data.forEach(customer => {
+            display.innerHTML += `<div>id: ${customer.id} 
+         ,name: ${customer.customer_name}
+         ,email: ${customer.email}
+         ,city: ${customer.city}
+         ,age: ${customer.age}
+         <div>
+          <button onclick ="edit_customer('${customer.customer_name}')">edit</button>
+          <button onclick ="delete_customer('${customer.customer_name}')">delte</button>
+          </div>
+         </div>
+         `})
+        })
+    }
+
   </script>
 
   <body>

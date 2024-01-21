@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <title>search book</title>
+</head>
+
+<body>
+    <div>
+        <a href="index.html"><button>home page</button></a>
+        <a href="login.html"><button>login</button></a>
+        <a href="signup.html"><button>signup</button></a>
+        <a href="return_book.html"><button>return_book</button></a>
+        <a href="books.html"><button>books</button></a>
+        <a href="customers.html"><button>customers</button></a>
+        <!-- <a href=""><button></button></a> -->
+    </div>
+    <hr>
+    book to search: <input type="text" id="book_name"><br>
+    author: <input type="text" id="author"><br>
+    year published: <input type="text" id="year_published"><br>
+    book type<select name="book_type" id="book_type">
+        <option value="1">return in up to 10 days</option>
+        <option value="2">return in up to 5 days</option>
+        <option value="3">return in up to 2 days</option>
+      </select> 
+
+    <button onclick="search_book()">search</button>
+    <button onclick="show_books()">show all books</button>
+    <button onclick="add_book()">add book</button>
+    <div id="confirmation"></div>
+    <div id=display></div>
+
+    <script>
+        const MY_SERVER = "http://127.0.0.1:5000"
+        const show_books = () => {
+            console.log(pending_book)
+            axios.get(MY_SERVER + "/books_in_stock")
+                .then(function (response) {
+                    display.innerHTML = ""
+                    response.data.forEach(book => {
+                        display.innerHTML += `<div>id: ${book.book_id} 
+         ,name: ${book.book_name}
+         ,author: ${book.author}
+         ,type: ${book.type}
+            <div>
+            <button onclick = "edit_book(${res.book_id})">press here to edit</button>
+            <button onclick = "delete_book_by_id(${res.book_id})">press here to delete</button>
+            </div>    
+        </div>
+                            `
+         })
+                })
+        }
+
+
+        const search_book = () => {
+            payload = { "book_name": book_name.value }
+            axios.post(MY_SERVER + "/find_book", payload)
+                .then(result => {
+                    result.data.forEach(res => {
+
+                        display.innerHTML += `book name: ${res.book_name},
+                        by the author: ${res.author},
+                        published in: ${res.year_published}   
+                        <div>
+                            <button onclick = "edit_book(${res.book_id})">press here to edit</button>
+                            <button onclick = "delete_book_by_id(${res.book_id})">press here to delete</button>
+                            </div>    
+                            `
+                    });
+
+                })
+        }
+
+        const edit_book = (book_id) => {
+            FormData = {
+                "book_id": book_id,
+                "new_name": book_name.value,
+                "new_author": author.value,
+                "new_year_published": year_published.value,
+                "new_type": book_type.value
+            }
+            axios.put(MY_SERVER + "/edit_book", FormData)
+                .then(res => {
+                    res.data["messege"]
+                })
+        }
+        const delete_book_by_id = (bookId) => {
+            // Check if the book has associated loans
+            axios.get(`${MY_SERVER}/delete_book_by_id/${bookId}`)
+                .then(response => {
+                    // If there are associated loans, ask for confirmation
+                    if (response.data.options) {
+                        handleDeleteConfirmation(bookId);
+                    } else {
+                        // If no associated loans, proceed with deletion
+                        deleteBookWithLoans(bookId);
+                    }
+                })
+                .catch(error => {
+                    console.error(error.response.data);
+                    // Handle errors or display error messages to the user
+                });
+        };
+        const cancelBookRemoval = () => {
+            // Clear the confirmation message
+            document.getElementById("confirmation").innerHTML = "";
+        };
+
+        const deleteBookWithLoans = (bookId) => {
+            document.getElementById("confirmation").innerHTML = "";
+            // Send a DELETE request to the backend with the bookId
+            axios.delete(`${MY_SERVER}/delete_book_by_id/${bookId}`)
+                .then(response => {
+                    // Display the server response
+                    confirmation.innerHTML += response.data
+                    // You can perform additional actions or UI updates here
+                })
+                .catch(error => {
+                    console.error(error.response.data);
+                    // Handle errors or display error messages to the user
+                });
+
+            // Clear the confirmation message
+        };
+
+        const handleDeleteConfirmation = (bookId) => {
+            // Display a confirmation message to the user
+            const confirmationMessage = `
+        <div>
+            There are active loans on this book. Do you want to remove it and delete the associated loans?
+            <button onclick="deleteBookWithLoans(${bookId})">Yes</button>
+            <button onclick="cancelBookRemoval()">No</button>
+        </div>
+    `;
+            document.getElementById("confirmation").innerHTML = confirmationMessage;
+        };
+
+        const add_book = () => {
+      const formData = {
+        name: document.getElementById("book_name").value,
+        author: document.getElementById("author").value,
+        year_published: document.getElementById("year_published").value,
+        type: document.getElementById("book_type").value
+      }
+      axios.post(MY_SERVER + "/add_book", formData)
+        .then(res => {
+          console.log(res.data)
+        })
+        .catch(error => {
+          console.error(error.response.data)
+        })
+
+    }
+
+
+        show_books()
+    </script>
+</body>
+
+</html>

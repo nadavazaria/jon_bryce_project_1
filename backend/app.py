@@ -277,37 +277,45 @@ def find_book():
         
         for book in books_to_find: 
             # ic(book)
-            output.append({"book_name":book.name,"author":book.author,"year_published":book.year_published})
+            output.append({"book_name":book.name,"author":book.author,"year_published":book.year_published,"book_id":book.id})
             ic(output)
         # if len(books_to_find) == 0:
         #     return {"messege":"no such books here"}
         return jsonify(output)
     return render_template("index.html")
 
-@app.route("/edit_customer",methods = ["PUT"])
+@app.route("/edit_customer",methods = ["PUT","GET"])
 def edit_customer():
+    if request.method == "PUT":
+        customer_to_edit = request.json["customer_id"]
+        edited_customer = Customer.query.get(customer_to_edit)
+        if edited_customer:
+            new_name = request.json["new_name"]
+            new_city =request.json["new_city"]
+            new_email = request.json["new email"]         
+            new_age =request.json["new_age"]
+            new_password = request.json["new_password"]
+            if new_name !="":
+                edited_customer.name = new_name
+            if new_city !="":
+                edited_customer.city = new_city
+            if new_age !="":            
+                edited_customer.age = new_age
+            if new_email != "":
+                edited_customer.email = new_email
+            if new_password != "":
+                edited_customer.email = new_email
+            db.session.commit()
+            return {"message":"customer edited successfuly"}
+        return {"message":"no such customer here"}
+    return {"message":"to edit a customer, input his new information in the relevent fields and press submit"}
 
-    customer_to_edit = request.json["customer_name"]
-    edited_customer = Customer.query.filter_by(name = customer_to_edit).first()
-    if edited_customer:
-        new_name = request.json["new_name"]
-        new_city =request.json["new_city"]         
-        new_age =request.json["new_age"]
-        if new_name !="":
-            edited_customer.name = new_name
-        if new_city !="":
-            edited_customer.city = new_city
-        if new_age !="":            
-            edited_customer.age = new_age
-        db.session.commit()
-        return {"messege":"customer edited successfuly"}
-    return {"messege":"no such customer here"}
 
 @app.route("/edit_book",methods = ["PUT"])
 def edit_book():
     ic("in edit")
-    book_to_edit = request.json["book_name"]
-    edited_book = Book.query.filter_by(name = book_to_edit).first()
+    book_to_edit = request.json["book_id"]
+    edited_book = Book.query.get(book_to_edit)
     if edited_book:
         new_name = request.json["new_name"]
         new_author = request.json["new_author"]
@@ -380,6 +388,51 @@ def remove_customer():
     else:
         return{"messege":"no such customer here"}
 
+
+
+@app.route(f"/delete_book_by_id/<int:book_id>",methods = ["DELETE","GET"])
+def delete_book_by_id(book_id):
+    ic(book_id)
+    book_to_del = Book.query.get(book_id)
+    list_of_loans = Loan.query.filter_by(bookID = book_to_del.id).all()
+    if book_to_del and len(list_of_loans )> 0 and request.method == "GET":
+        
+        message = {
+            "message": "There are active loans on this book. Do you want to remove it and delete the associated loans?",
+            "options": [
+                {"label": "Yes", "value": "delete_loans"},
+                {"label": "No", "value": "cancel_removal"}
+            ]
+        }
+        return message
+
+@app.route(f"/delete_customer_by_id/<int:customer_id>",methods = ["DELETE","GET"])
+def delete_customer_by_id(customer_id):
+    customer_to_del = Customer.query.get(customer_id)
+    list_of_loans = Loan.query.filter_by(custID = customer_to_del.id).all()
+    if request.method == "GET":
+        ic(len(list_of_loans))
+        if customer_to_del and len(list_of_loans)> 0 and request.method == "GET":
+            
+            message = {
+                "message": "There are active loans on this customer. Do you want to remove it and delete the associated loans?",
+                "options": [
+                    {"label": "Yes", "value": "delete_loans"},
+                    {"label": "No", "value": "cancel_removal"}
+                ]
+            }
+            return message
+
+
+    if customer_to_del and request.method == "DELETE":
+        for loan in list_of_loans:
+            db.session.delete(loan)            
+        db.session.delete(customer_to_del)
+        db.session.commit()
+    
+        return {"messege":"customer removed successfully asotiated loans were resolved"}    
+    else:
+        return{"messege":"no such customer here"}
 
 
 if __name__ == "__main__":

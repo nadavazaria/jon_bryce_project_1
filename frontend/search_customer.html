@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <title>search book</title>
+</head>
+
+<body>
+    <div>
+        <a href="login.html"><button>login</button></a>
+        <a href="signup.html"><button>signup</button></a>
+        <a href="return_book.html"><button>return_book</button></a>
+        <a href="books.html"><button>books</button></a>
+        <a href="customers.html"><button>customers</button></a>
+        <!-- <a href=""><button></button></a> -->
+      </div>
+      <hr>
+    customer to search: <input type="text" id="customer_name"><br>
+    <input type="text" id="city">
+    <input type="number" id=age>
+    <input type="password" id=password>
+    <button onclick="search_customer()">search</button>
+    
+
+    <div id="confirmation"></div>
+    <div id=display></div>
+
+    <script>
+        const MY_SERVER = "http://127.0.0.1:5000"
+        const search_customer = () => {
+            payload = { "customer_name": customer_name.value }
+            display.innerHTML = ""
+            axios.post(MY_SERVER + "/find_customer", payload)
+                .then(result => {
+                    result.data.forEach(res => {
+
+                        display.innerHTML += `
+                        customer id: ${res.customer_id}
+                        customer name: ${res.customer_name},
+                        age: ${res.age}   
+                        from: ${res.city},
+                        <div>
+                            <button onclick = "edit_customer(${res.customer_id})">press here to edit</button>
+                            <button onclick = "delete_customer_by_id(${res.customer_id})">press here to delete</button>
+                            </div>    
+                            `
+                    });
+
+                })
+        }
+
+        const edit_customer = (customer_id) => {
+            FormData = {
+                "customer_id": customer_id,
+                "new_name": customer_name.value,
+                "new_city": city.value,
+                "new_age": age.value,
+                "new_password": customer_password.value
+            }
+            axios.put(MY_SERVER + "/edit_customer", FormData)
+                .then(res => {
+                    res.data["messege"]
+                })
+        }
+        const delete_customer_by_id = (customerId) => {
+            // Check if the customer has associated loans
+            axios.get(`${MY_SERVER}/delete_customer_by_id/${customerId}`)
+                .then(response => {
+                    // If there are associated loans, ask for confirmation
+                    if (response.data.options) {
+                        console.log("im in options");
+                        handleDeleteConfirmation(customerId);
+                    } else {
+                        // If no associated loans, proceed with deletion
+                        console.log("no options given");
+                        deletecustomerWithLoans(customerId);
+                    }
+                })
+                .catch(error => {
+                    console.error(error.response.data);
+                    // Handle errors or display error messages to the user
+                });
+        };
+        const cancelcustomerRemoval = () => {
+            // Clear the confirmation message
+            document.getElementById("confirmation").innerHTML = "";
+        };
+
+        const deletecustomerWithLoans = (customerId) => {
+            document.getElementById("confirmation").innerHTML = "";
+            // Send a DELETE request to the backend with the customerId
+            axios.delete(`${MY_SERVER}/delete_customer_by_id/${customerId}`)
+                .then(response => {
+                    // Display the server response
+                    confirmation.innerHTML += response.data.messege
+                    // You can perform additional actions or UI updates here
+                })
+                .catch(error => {
+                    console.error(error.response.data);
+                    // Handle errors or display error messages to the user
+                });
+
+            // Clear the confirmation message
+        };
+
+        const handleDeleteConfirmation = (customerId) => {
+            // Display a confirmation message to the user
+            const confirmationMessage = `
+        <div>
+            There are active loans on this customer. Do you want to remove it and delete the associated loans?
+            <button onclick="deletecustomerWithLoans(${customerId})">Yes</button>
+            <button onclick="cancelcustomerRemoval()">No</button>
+        </div>
+    `;
+            document.getElementById("confirmation").innerHTML = confirmationMessage;
+        };
+
+    </script>
+</body>
+
+</html>
