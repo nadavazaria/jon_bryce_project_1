@@ -4,28 +4,32 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="https://i.pinimg.com/736x/98/f2/36/98f236aec7b542940e077625aa599de1.jpg" type="image/x-icon">
   <title>admin page</title>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-  <!-- axios.get(MY_SERVER).then(res) -->
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+  <link rel="icon" href="https://i.pinimg.com/736x/98/f2/36/98f236aec7b542940e077625aa599de1.jpg" type="image/x-icon">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
-  <div>
-    <a href="index.html"><button>home page</button></a>
-
-    <a href="login.html"><button>login</button></a>
-    <a href="signup.html"><button>signup</button></a>
-    <a href="return_book.html"><button>return_book</button></a>
-    <a href="books.html"><button>books</button></a>
-    <a href="customers.html"><button>customers</button></a>
+  <div class="container">
+    <a href="index.html"><button class="btn btn-primary">home page</button></a>
+    <a href="login.html"><button class="btn btn-primary">login</button></a>
+    <a href="books.html"><button class="btn btn-primary">books</button></a>
+    <a href="customers.html"><button class="btn btn-primary">customers</button></a>
     <!-- <a href=""><button></button></a> -->
   </div>
   <hr>
-  <a href="customers.html"><button>customers</button></a>
-  <button onclick="show_loans()">print loans</button>
-  <button onclick="show_books()">print_books</button>
-  <button onclick="search_book()">search book</button>
-  <button onclick="change_book(pending_book['book_name'])">search book</button>
+
+
+  <button class="btn btn-primary" onclick="show_loans()">print loans</button>
+  <button class="btn btn-primary" onclick="show_books()">print_books</button>
+
+
 
   <!-- <button onclick = "edit_book('name of the wind')">this butijfoa[bf</button> -->
 
@@ -45,51 +49,198 @@
   <!-- <button onclick="edit_book('warbreaker')">edit warbreaker</button> -->
 
   <div id="display"></div>
+  <div id="messages"></div>
 
 
   <script>
     const MY_SERVER = "http://127.0.0.1:5000"
     let pending_book = { "book_name": "", "book_id": "" }
-
-
-
     const show_books = () => {
-      console.log(pending_book)
+
+      console.log("show books called");
       axios.get(MY_SERVER + "/books_in_stock")
-        .then(function (response) {
-          display.innerHTML = ""
-          response.data.forEach(book => {
-            display.innerHTML += `<div>id: ${book.book_id} 
-         ,name: ${book.book_name}
-         ,author: ${book.author}
-         ,type: ${book.type}
-         </div>
-         `})
+        .then(function (res) {
+          display.innerHTML = `<h1>Books in Stock</h1>`;
+
+          if (res.data.length > 0) {
+            // Generate table header
+            let tableHtml = `
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Author</th>
+                    <th>Type</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+            // Populate table rows with book data
+            res.data.forEach(book => {
+              tableHtml += `
+            <tr>
+                <td>${book.book_id}</td>
+                <td>${book.book_name}</td>
+                <td>${book.author}</td>
+                <td>${book.type}</td>
+                <td>
+                    <button class="btn btn-primary" onclick="edit_book(${book.book_id})">Edit</button>
+                    <button class="btn btn-danger" onclick="delete_book_by_id(${book.book_id})">Delete</button>
+                    <button class="btn btn-success" onclick="submit_loan('${book.book_name}')">Loan</button>
+                </td>
+            </tr>
+        `;
+            });
+
+            // Close table
+            tableHtml += `
+            </tbody>
+        </table>
+    `;
+
+            display.innerHTML += tableHtml;
+          } else {
+            // Display a message if there are no books in stock
+            display.innerHTML += `<h2 >No books in stock.</h2 style = "color:black">`;
+          }
         })
     }
 
+
+
+
+
+    const get_customers = () => {
+      axios.get(MY_SERVER + "/customers")
+        .then(function (response) {
+          display.innerHTML = `<h1>current customers</h1>`
+          let tableHtml =
+            `<table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>City</th>
+                        <th>Age</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+          response.data.forEach(customer => {
+            tableHtml += `
+          
+                    <tr>
+                        <td>${customer.id}</td>
+                        <td>${customer.customer_name}</td>
+                        <td>${customer.email}</td>
+                        <td>${customer.city}</td>
+                        <td>${customer.age}</td>
+                        <td>
+                          <a href="edit_customer.html?customer_id=${customer.id}&customer_name=${customer.customer_name}"><button class="btn btn-primary">Edit</button></a>
+                            <button class="btn btn-danger" onclick="delete_customer_by_id(${customer.id})">Delete</button>
+                        </td>
+                    </tr>
+        
+        `;
+          })
+          tableHtml += ` </tbody>
+                          </table>`;
+          display.innerHTML += tableHtml
+        })
+    }
 
     const show_loans = () => {
       axios.get(MY_SERVER + "/loans")
-        .then(function (response) {
-          display.innerHTML = "<h1>ongoing loans</h1>"
-          response.data["list_of_loans"].forEach(loan => {
-            display.innerHTML += `
-            <div>customer name: ${loan.customer_name} 
-         ,book name: ${loan.book_name}
-         ,time left: ${loan.time_left}
-         </div>
+        .then(res => {
+          display.innerHTML = `<h1>ongoing loans</h1>`
+          let laonsTable = `<table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>loan ID</th>
+                        <th>Loaning customer</th>
+                        <th>Loaned book</th>
+                        <th>Time left</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+          res.data.list_of_loans.forEach(loan => {
+            laonsTable += `
+                    <tr>
+                        <td>${loan.loan_id}</td>
+                        <td>${loan.customer_name}</td>
+                        <td>${loan.book_name}</td>
+                        <td>${loan.time_left}</td>
+                        <td>
+                            <button class="btn btn-danger" onclick="delete_loan_by_id(${loan.loan_id})">Delete</button>
+                        </td>
+                    </tr>
+          
          `})
+          laonsTable += ` </tbody>
+                          </table> `;
+          display.innerHTML += laonsTable
+
           display.innerHTML += "<h1>late loans</h1>"
-          response.data["late_loans"].forEach(loan => {
-            display.innerHTML += `
-          customer name: ${loan.coustomer_name},
-          book name: ${loan.book_name},
-          late by: ${loan.late_by}
-          `
-          })
+          let late_loans_table = `<table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>loan ID</th>
+                        <th>Loaning customer</th>
+                        <th>Loaned book</th>
+                        <th>Time left</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+          res.data.late_loans.forEach(loan => {
+            late_loans_table += `
+                    <tr>
+                        <td>${laon.loan_id}</td>
+                        <td>${loan.customer_name}</td>
+                        <td>${loan.book_name}</td>
+                        <td>${loan.time_left}</td>
+                        <td>
+                            <button class="btn btn-danger" onclick="delete_loan_by_id(${loan.loan_id})">Delete</button>
+                        </td>
+                    </tr>
+          
+         `})
+          late_loans_table += ` </tbody>
+                          </table> `;
+          display.innerHTML += late_loans_table
         })
     }
+
+
+
+    //       response.data.forEach(customer => {
+    //         tableHtml += `
+
+    //                 <tr>
+    //                     <td>${customer.id}</td>
+    //                     <td>${customer.customer_name}</td>
+    //                     <td>${customer.email}</td>
+    //                     <td>${customer.city}</td>
+    //                     <td>${customer.age}</td>
+    //                     <td>
+    //                       <a href="edit_customer.html?customer_id=${customer.id}&customer_name=${customer.customer_name}"><button class="btn btn-primary">Edit</button></a>
+    //                         <button class="btn btn-danger" onclick="delete_customer_by_id(${customer.id})">Delete</button>
+    //                     </td>
+    //                 </tr>
+
+    //     `;
+    //       })
+    //       tableHtml += ` </tbody>
+    //                       </table>`;
+    //       display.innerHTML += tableHtml
+    //     })
+    // }
 
 
     const add_book = () => {
@@ -171,28 +322,41 @@
       axios.delete(MY_SERVER + `/delete_book_by_id/${book_id}`)
         .then(response => {
           // console.log(response.data)
-          display.innerHTML += response["messege"]
+          showToast( response.message,"success")
         })
-    }
-    const get_customers = () => {
-      axios.get(MY_SERVER + "/customers")
-        .then(function (response) {
-          display.innerHTML = `<h1>curremt customers</h1>`
-          response.data.forEach(customer => {
-            display.innerHTML += `<div>id: ${customer.id} 
-         ,name: ${customer.customer_name}
-         ,email: ${customer.email}
-         ,city: ${customer.city}
-         ,age: ${customer.age}
-         <div>
-          <button onclick ="edit_customer('${customer.customer_name}')">edit</button>
-          <button onclick ="delete_customer('${customer.customer_name}')">delte</button>
-          </div>
-         </div>
-         `})
-        })
+      
     }
 
+    const delete_loan_by_id = (loan_id) => {
+      axios.delete(MY_SERVER + `/delete_loan_by_id/${loan_id}`)
+        .then(response => {
+          // console.log(response.data)
+          show_loans()
+          showToast( response.message,"success")
+        })
+
+    }
+
+    const showToast = (message, type) => {
+
+      console.log("toast was called");
+      Toastify({
+        text: message,
+        className: "info",
+        position: "center",
+        gravity: "bottom",
+        offset: {
+          y: window.innerHeight, // Set the desired offset from the top
+        },
+
+        style: {
+          background: type === "success" ? "linear-gradient(to right, #00b09b, #96c93d)" : "linear-gradient(to right, #red, #blue)",
+          width: "300px",
+          minHeight: "30px",
+
+        }
+      }).showToast();
+    };
   </script>
 
   <body>

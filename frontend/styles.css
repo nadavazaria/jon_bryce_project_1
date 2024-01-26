@@ -1,0 +1,124 @@
+/* Reset some default styles to ensure consistency across browsers */
+body, h1, h2, h3, p, ul, li, button {
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background-image: url("https://m.timesofindia.com/photo/104701845/104701845.jpg"); /* Add the path to your background image */
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    position: relative;
+    color: #f3f0f0; /* Dark text color */
+}
+
+/* Navbar styles */
+nav {
+    background-color: #007bff; /* Blue navbar color */
+    padding: 10px 20px;
+}
+
+nav a {
+    color: #fff;
+    text-decoration: none;
+    margin-right: 20px;
+    font-weight: bold;
+}
+
+/* General styles for the page */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Card design for divs */
+.card {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 20px 0;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Styles for buttons */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: bold; /* Make the text bold */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+/* Primary button style */
+.btn-primary {
+    background-color: #007bff;
+    color: #fff;
+}
+
+/* Secondary button style */
+.btn-secondary {
+    background-color: #6c757d;
+    color: #fff;
+}
+
+/* Success button style */
+.btn-success {
+    background-color: #28a745;
+    color: #fff;
+}
+
+/* Danger button style */
+.btn-danger {
+    background-color: #dc3545;
+    color: #fff;
+}
+
+/* Hover effect for all buttons */
+.btt:hover {
+    background-color: #0056b3; /* Darker shade for hover effect */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Box shadow for depth effect */
+}
+
+/* Additional styles for specific elements */
+h1, h2, h3 {
+    color: #090a0a; /* Blue heading color */
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px; /* Adjust as needed */
+    border-radius: 10px; /* Rounded corners for the table */
+    overflow: hidden; /* Hide overflow for rounded corners */
+    background-color: #486680;
+}
+
+th, td {
+    border: 1px solid #ddd; /* Border color */
+    padding: 8px;
+    text-align: left;
+}
+
+/* Table header styles */
+thead {
+    background-color: #007bff; /* Blue background color for the table header */
+    color: #fff; /* Text color for the table header */
+}
+
+
+/* Style for the special form container */
+.container {
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 20px;
+    margin-top: 20px;
+    border-radius: 10px;
+}
+
+/* You can add more styles as needed for different elements in your bookstore page */

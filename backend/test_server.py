@@ -45,6 +45,7 @@ class Book(db.Model):
     author = db.Column(db.String(50),nullable = False)
     year_published = db.Column(db.Integer,nullable = False)
     type = db.Column(db.Integer,nullable = False)
+    book_picture = db.Column(db.String(100,default = "url_for_placeholder"))
     # i made a connection/relationship between the book and the loan table 
     loans = db.relationship("Loan",backref = "book")
     # this helps view the book when we call on it 
@@ -110,7 +111,7 @@ def add_book():
     year_published = request.json["year_published"]
     book_type = request.json["type"]
     existing_book = Book.query.filter_by(name=book_name).first()
-
+    
     if existing_book:
 
         return {"message": "this book is already registered"}

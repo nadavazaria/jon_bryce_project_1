@@ -46,6 +46,11 @@
             </div>
 
             <div class="mb-3">
+                <label for="book_cover" class="form-label">book cover picture file:</label>
+                <input type="file" id="book_cover" class="form-control">
+            </div>
+
+            <div class="mb-3">
                 <label for="book_type" class="form-label">Book Type:</label>
                 <select name="book_type" id="book_type" class="form-select">
                     <option value="1">Return in up to 10 days</option>
@@ -263,24 +268,31 @@
         };
 
         const add_book = () => {
-            const formData = {
-                name: document.getElementById("book_name").value,
-                author: document.getElementById("author").value,
-                year_published: document.getElementById("year_published").value,
-                type: document.getElementById("book_type").value
+            const formData = new FormData();
+            formData.append('name', document.getElementById("book_name").value);
+            formData.append('author', document.getElementById("author_name").value);
+            formData.append('year_published', document.getElementById("year_published").value);
+            formData.append('type', document.getElementById("book_type").value);
+
+            // Get the selected file from the input element
+            const fileInput = document.getElementById('book_cover');
+            const file = fileInput.files[0];
+
+            // Append the file to the FormData object
+            if (file) {
+                formData.append('book_cover', file);
             }
+
             axios.post(MY_SERVER + "/add_book", formData)
                 .then(res => {
-                    console.log("i called the server");
-                    show_books()
-                    showToast(res.data.message, "success")
+                    console.log(res.data);
+                    // Handle success, e.g., show a success message to the user
                 })
-            // .catch(error => {
-            //     console.log("there was an error");
-            //     console.log(error.response.data)
-            // })
-
-        }
+                .catch(error => {
+                    console.error(error.response.data);
+                    // Handle error, e.g., show an error message to the user
+                });
+        };
 
         function submit_loan(book_name) {
             // Get form data
@@ -389,16 +401,16 @@
                     display.innerHTML += late_loans_table
                 })
         };
-        
-    const delete_loan_by_id = (loan_id) => {
-      axios.delete(MY_SERVER + `/delete_loan_by_id/${loan_id}`)
-        .then(response => {
-            show_loans()
-          // console.log(response.data)
-          showToast( response.message,"success")
-        })
 
-    }
+        const delete_loan_by_id = (loan_id) => {
+            axios.delete(MY_SERVER + `/delete_loan_by_id/${loan_id}`)
+                .then(response => {
+                    show_loans()
+                    // console.log(response.data)
+                    showToast(response.message, "success")
+                })
+
+        }
     </script>
 </body>
 

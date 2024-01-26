@@ -1,67 +1,120 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>signup</title>
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-<!-- axios.get(MY_SERVER).then(res) -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="https://i.pinimg.com/736x/98/f2/36/98f236aec7b542940e077625aa599de1.jpg" type="image/x-icon">
+  <title>signup</title>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+  <link rel="icon" href="https://i.pinimg.com/736x/98/f2/36/98f236aec7b542940e077625aa599de1.jpg" type="image/x-icon">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  <link rel="stylesheet" href="styles.css">
+<style>
+  h1,h2,h3{
+    text-align: center;
+  }
+</style>
+  <!-- axios.get(MY_SERVER).then(res) -->
 </head>
+
 <body>
-  <div>
-    <a href="index.html"><button>home page</button></a>
-    <a href="login.html"><button>login</button></a>
-    <a href="signup.html"><button>signup</button></a>
-    <a href="return_book.html"><button>return_book</button></a>
-    <a href="books.html"><button>books</button></a>
-    <a href="customers.html"><button>customers</button></a>
-    <!-- <a href=""><button></button></a> -->
+  <div class="container">
+    <a href="index.html"><button class="btn btn-primary">Home Page</button></a>
+    <a href="login.html"><button class="btn btn-primary">Login</button></a>
+    <a href="return_book.html"><button class="btn btn-primary">Return Book</button></a>
+    <a href="books.html"><button class="btn btn-primary">Books</button></a>
+    <a href="customers.html"><button class="btn btn-primary">Customers</button></a>
   </div>
   <hr>
-  <h1>Library Management System</h1>
-  
-  <h2>Sign Up</h2>
-  <div id = "display"></div>
-  <form id ="signupForm"action="/signup",method = "post"></form>
-  <label for="name">Name:</label>
-  <input type="text" name="name" id = "name" required><br>
-  <label for="email">Email:</label>
-  <input type="email" name="email" id = "email" required><br>
-  <label for="password">Password:</label>
-  <input type="password" name="password" id = "password" required><br>
-  <label for="city">City:</label>
-  <input type="text" name="city" id = "city" required><br>
-  <label for="age">Age:</label>
-  <input type="number" name="age" id = "age" required><br>
+  <div class="container">
+    <h1>Library Management System</h1>
+    
+    <h2>Sign Up</h2>
+  </div>
+  <div id="display"></div>
+  <form style="color:black">
+    <div class="container">
+      <div class="mb-3">
+        <label for="name">Name:</label>
+        <input type="text" name="name" id="name" class="form-control" required><br>
+      </div>
+      <div class="mb-3">
+        <label for="email" class="form-label">Email:</label>
+        <input type="email" name="email" id="email" class="form-control" required><br>
+      </div>
+      <div class="mb-3">
+        <label for="password" class="form-label">Password:</label>
+        <input type="password" name="password" id="password" class="form-control" required><br>
+      </div>
+      <div class="mb-3">
+
+        <label for="city" class="form-label">City:</label>
+        <input type="text" name="city" id="city" class="form-control" required><br>
+      </div>
+      <div class="mb-3">
+        <label for="age" class="form-label">Age:</label>
+        <input type="number" name="age" id="age" class="form-control" required><br>
+      </div>
+  </form>
   <!-- Use a button with type="button" to handle click event -->
-  <button type="button" onclick="submitSignUpForm()">Sign Up</button>
-</form>  
 
-  <form id="signupForm">
-<script>
-  const MY_SERVER = "http://127.0.0.1:5000"
-  function submitSignUpForm() {
-            // Get form data
-            const formData = {
-                name: document.getElementById('name').value,
-                email: document.getElementById("email").value,
-                password: document.getElementById("password").value,
-                city: document.getElementById("city").value,
-                age: document.getElementById("age").value
-            }
+  <button class="btn btn-success" onclick="submitSignUpForm()">Sign Up</button>
 
-            // Send a POST request using Axios
-            axios.post(MY_SERVER + "/signup", formData)
-                .then(response => {
-                    display.innerHTML = `<h3>${response.data["messege"]}</h3>`
-                    // Handle success, e.g., show a success message to the user
-                })
-                .catch(error => {
-                    console.error(error.data);
-                    // Handle error, e.g., show an error message to the user
-                });
-        }
+  </div>
+
+  <script>
+    const MY_SERVER = "http://127.0.0.1:5000"
+    function submitSignUpForm() {
+      // Get form data
+      const formData = {
+        name: document.getElementById('name').value,
+        email: document.getElementById("email").value,
+        password: document.getElementById("password").value,
+        city: document.getElementById("city").value,
+        age: document.getElementById("age").value
+      }
+
+      // Send a POST request using Axios
+      axios.post(MY_SERVER + "/signup", formData)
+        .then(response => {
+          showToast(response.data.message,"success")
+          // Handle success, e.g., show a success message to the user
+        })
+        .catch(error => {
+          showToast(error.data.message,"err");
+          // Handle error, e.g., show an error message to the user
+        });
+    }
+    const showToast = (message, type) => {
+
+console.log("toast was called");
+Toastify({
+    text: message,
+    className: "info",
+    position: "left",
+    gravity: "top",
+    offset: {
+    y: window.innerHeight, // Set the desired offset from the top
+},
+    
+    style: {
+        background: type === "success" ? "linear-gradient(to right, #00b09b, #96c93d)" : "linear-gradient(to right, #red, #blue)",
+        width: "300px",
+        minHeight: "30px",
+                         
+    }
+}).showToast();
+};
+
+
+
+
   </script>
-<body>
-  
+
+  <body>
+
 </html>

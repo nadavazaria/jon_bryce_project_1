@@ -10,7 +10,7 @@ def main():
       hashed_password = bcrypt.hashpw(password.encode("utf-8"),bcrypt.gensalt())
       ic (hashed_password)
       return hashed_password
-
+  
   ic(os.urandom(32))
 if __name__ == "__main__":
     main()

@@ -4,40 +4,47 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="https://i.pinimg.com/736x/98/f2/36/98f236aec7b542940e077625aa599de1.jpg" type="image/x-icon">
   <title>customer Management </title>
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  <link rel="stylesheet" href="styles.css">
+
   <!-- axios.get(MY_SERVER).then(res) -->
 </head>
 
 <body>
-  <div>
-    <a href="index.html"><button>home page</button></a>
-    <a href="login.html"><button>login</button></a>
-    <a href="signup.html"><button>signup</button></a>
-    <a href="return_book.html"><button>return_book</button></a>
-    <a href="books.html"><button>books</button></a>
-    <a href="customers.html"><button>customers</button></a>
-    <!-- <a href=""><button></button></a> -->
+  <div class="container">
+    <a href="index.html"><button class="btn btn-primary">Home Page</button></a>
+    <a href="login.html"><button class="btn btn-primary">Login</button></a>
+    <a href="books.html"><button class="btn btn-primary">Books</button></a>
+    <a href="customers.html"><button class="btn btn-primary">Customers</button></a>
   </div>
   <hr>
   <h1>Library Management System</h1>
+  <div class="container">
+    <form style="color:black">
+      <!-- Bootstrap form with your custom fields -->
+      <div class="mb-3">
+        <label for="customer_name" class="form-label">customer name:</label>
+        <input type="text" id="customer_name" class="form-control">
+      </div>
 
+
+
+    </form>
+    <button class="btn btn-success" onclick="search_customer()">Search</button>
+    <button class="btn btn-success" onclick="get_customers()">Show All customers</button>
+    <a href="signup.html"><button class="btn btn-primary">add customer</button></a>
+    <a href="books.html"><button class="btn btn-primary">Books</button></a>
+  </div>
   <div id="messeges"></div>
-  <form id="signupForm" action="/signup" ,method="post"></form>
-  customer_name <input type="text" id="name"><br>
-  customer city: <input type="text" id="city"><br>
-  customer age: <input type="number " id="age"><br>
-  <label for="email">Email:</label>
-  <input type="email" name="email" id="email" required><br>
-  <label for="password">Password:</label>
-  <input type="password" name="password" id="password" required><br>
-  <!-- Use a button with type="button" to handle click event -->
-  <button type="button" onclick="get_customers()">print customers</button>
-  <a href="signup.html "><button>signup</button></a>
-  </form>
 
   <div id="display"></div>
-
+  <div id="confirmation"></div>
 
   <script>
     let customer_to_edit = ""
@@ -46,56 +53,113 @@
     const get_customers = () => {
       axios.get(MY_SERVER + "/customers")
         .then(function (response) {
-          display.innerHTML = `<h1>curremt customers</h1>`
+          display.innerHTML = `<h1>current customers</h1>`
+          let tableHtml =
+            `<table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>City</th>
+                        <th>Age</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
           response.data.forEach(customer => {
-            display.innerHTML += `<div>id: ${customer.id} 
-         ,name: ${customer.customer_name}
-         ,email: ${customer.email}
-         ,city: ${customer.city}
-         ,age: ${customer.age}
-         <div>
-          <button onclick ="edit_customer('${customer.customer_name}')">edit</button>
-          <button onclick ="delete_customer('${customer.customer_name}')">delte</button>
-          </div>
-         </div>
-         `})
+            tableHtml += `
+          
+                    <tr>
+                        <td>${customer.id}</td>
+                        <td>${customer.customer_name}</td>
+                        <td>${customer.email}</td>
+                        <td>${customer.city}</td>
+                        <td>${customer.age}</td>
+                        <td>
+                          <a href="edit_customer.html?customer_id=${customer.id}&customer_name=${customer.customer_name}"><button class="btn btn-primary">Edit</button></a>
+                            <button class="btn btn-danger" onclick="delete_customer_by_id(${customer.id})">Delete</button>
+                        </td>
+                    </tr>
+        
+        `;
+          })
+          tableHtml += ` </tbody>
+                          </table>`;
+          display.innerHTML += tableHtml
         })
     }
 
 
     const search_customer = () => {
       payload = { "customer_name": customer_name.value }
-      display.innerHTML = ""
+      display.innerHTML = `<h1>searched customers</h1>`
       axios.post(MY_SERVER + "/find_customer", payload)
-        .then(result => {
-          result.data.forEach(res => {
+        .then(function (response) {
+          if (response.data.length > 0) {
+            display.innerHTML = `<h1>current customers</h1>`
+            let tableHtml =
+              `<table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>City</th>
+                        <th>Age</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>`;
 
-            display.innerHTML += `
-                        customer id: ${res.customer_id}
-                        customer name: ${res.customer_name},
-                        age: ${res.age}   
-                        from: ${res.city},
-                        <div>
-                            <button onclick = "edit_customer(${res.customer_id})">press here to edit</button>
-                            <button onclick = "delete_customer_by_id(${res.customer_id})">press here to delete</button>
-                            </div>    
-                            `
-          });
-
+            response.data.forEach(customer => {
+              tableHtml += `
+          
+                    <tr>
+                        <td>${customer.id}</td>
+                        <td>${customer.customer_name}</td>
+                        <td>${customer.email}</td>
+                        <td>${customer.city}</td>
+                        <td>${customer.age}</td>
+                        <td>
+                          <a href="edit_customer.html?customer_id=${customer.id}&customer_name=${customer.customer_name}"><button class="btn btn-primary">Edit</button></a>
+                            <button class="btn btn-danger" onclick="delete_customer_by_id(${customer.id})">Delete</button>
+                        </td>
+                    </tr>
+        
+        `;
+            })
+            tableHtml += ` </tbody>
+                          </table>`;
+            display.innerHTML += tableHtml
+          } else {
+            // Display a message if there are no books in stock
+            display.innerHTML = `
+            <div class = "container">
+            <h2 >no customer named ${customer_name.value}
+              </h2>
+            </div>`
+              ;
+          }
         })
     }
 
     const edit_customer = (customer_id) => {
+      console.log(customer_id)
+      console.log("i am called")
       FormData = {
         "customer_id": customer_id,
         "new_name": customer_name.value,
+        "new_email": email.value,
         "new_city": city.value,
         "new_age": age.value,
-        "new_password": customer_password.value
+        "new_password": password.value
       }
       axios.put(MY_SERVER + "/edit_customer", FormData)
         .then(res => {
-          res.data["messege"]
+          console.log(res.data);
+          get_customers()
         })
     }
 
@@ -103,7 +167,7 @@
 
     const delete_customer_by_id = (customerId) => {
       // Check if the customer has associated loans
-      axios.get(`${MY_SERVER}/delete_customer_by_id/${customerId}`)
+      axios.get(MY_SERVER + "/delete_customer_by_id/" + customerId)
         .then(response => {
           // If there are associated loans, ask for confirmation
           if (response.data.options) {
@@ -119,6 +183,7 @@
           console.error(error.response.data);
           // Handle errors or display error messages to the user
         });
+      get_customers()
     };
 
 
@@ -136,8 +201,11 @@
       axios.delete(`${MY_SERVER}/delete_customer_by_id/${customerId}`)
         .then(response => {
           // Display the server response
-          confirmation.innerHTML += response.data.messege
+          confirmation.innerHTML += `<div class = "container" style = "color:black">
+            ${response.data.message}
+            </div>`
           // You can perform additional actions or UI updates here
+          get_customers()
         })
         .catch(error => {
           console.error(error.response.data);
@@ -152,13 +220,14 @@
     const handleDeleteConfirmation = (customerId) => {
       // Display a confirmation message to the user
       const confirmationMessage = `
-        <div>
-            There are active loans on this customer. Do you want to remove it and delete the associated loans?
-            <button onclick="deletecustomerWithLoans(${customerId})">Yes</button>
-            <button onclick="cancelcustomerRemoval()">No</button>
+      <div class = "container" style = "color:black">
+            <h3>There are active loans on this customer. Do you want to remove it and delete the associated loans?<h3>
+            <button class = "btn btn-danger" onclick="deletecustomerWithLoans(${customerId})">Yes</button>
+            <button class = "btn btn-primary"onclick="cancelcustomerRemoval()">No</button>
         </div>
     `;
       document.getElementById("confirmation").innerHTML = confirmationMessage;
+
     };
 
 

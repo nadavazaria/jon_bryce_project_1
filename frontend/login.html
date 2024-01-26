@@ -3,37 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="https://i.pinimg.com/736x/98/f2/36/98f236aec7b542940e077625aa599de1.jpg" type="image/x-icon">
     <title>login </title>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <link rel="icon" href="https://i.pinimg.com/736x/98/f2/36/98f236aec7b542940e077625aa599de1.jpg" type="image/x-icon">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link rel="stylesheet" href=  "styles.css">
 <!-- axios.get(MY_SERVER).then(res) -->
 </head>
 <body>
-  <div>
-    <a href="index.html"><button>home page</button></a>
-
-    <a href="login.html"><button>login</button></a>
-    <a href="signup.html"><button>signup</button></a>
-    <a href="return_book.html"><button>return_book</button></a>
-    <a href="books.html"><button>books</button></a>
-    <a href="customers.html"><button>customers</button></a>
-    <!-- <a href=""><button></button></a> -->
-  </div>
+  <div class="container">
+    <a href="index.html"><button class="btn btn-primary">Home Page</button></a>
+    <a href="login.html"><button class="btn btn-primary">Login</button></a>
+    <a href="books.html"><button class="btn btn-primary">Books</button></a>
+    <a href="customers.html"><button class="btn btn-primary">Customers</button></a>
+</div>
   <hr>
-  <h1>Library Management System</h1>
-  
-  <h2>login</h2>
-  <form id ="signupForm"action="/signup",method = "post"></form>
-  <label for="email">Email:</label>
-  <input type="email" name="email" id = "email" required><br>
-  <label for="password">Password:</label>
-  <input type="password" name="password" id = "password" required><br>
+  <div class="container" style="color:black;text-align: center;">
+  <h1>Login page</h1>
+  </div>  
+  <div id=confirmation style="color:black"></div>
+    <div class="container" style="color:black">
+  <form id ="login_form"action="/signup",method = "post"></form>
+  <label for="email" class="form-label">Email:</label>
+  <input type="email" name="email" id = "email" class="form-control" required><br>
+  <label for="password" class="form-label">Password:</label>
+  <input type="password" name="password" id = "password" class="form-control" required><br>
   <!-- Use a button with type="button" to handle click event -->
-  <button type="button" onclick="submit_login_form()">login</button>
+  <button type="button" class = "btn btn-primary" onclick="submit_login_form()">login</button>
+</div>
 </form>  
 
 
-  <form id="signupForm">
-<div id = "display"></div>
+<div class = "container" id = "display"></div>
 <script>
   const MY_SERVER = "http://127.0.0.1:5000"
   function submit_login_form() {
@@ -47,7 +52,8 @@
             axios.post(MY_SERVER + "/login", formData)
                 .then(response => {
                     console.log(response.data)
-                    localStorage.setItem("access_token",response.data)
+                    localStorage.setItem("access_token",response.data.access_token)
+                    display.innerHTML = "<h1 style ='color:black'>login successful</h1>"
                   // Handle success, e.g., show a success message to the user
                 })
                 // .catch(error => {
