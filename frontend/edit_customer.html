@@ -15,13 +15,15 @@
 
 <body>
     <div class="container">
-        <a href="index.html"><button class="btn btn-primary">Home Page</button></a>
+        <a href="index.html"><img
+                src="https://dalicanvas.co.il/wp-content/uploads/2022/10/%D7%AA%D7%9E%D7%95%D7%A0%D7%94-%D7%9B%D7%9C%D7%91-%D7%A8%D7%95%D7%9E%D7%A0%D7%98%D7%99.jpg"></a>
         <a href="login.html"><button class="btn btn-primary">Login</button></a>
         <a href="books.html"><button class="btn btn-primary">Books</button></a>
         <a href="customers.html"><button class="btn btn-primary">Customers</button></a>
     </div>
     <hr>
     <h1>Library Management System</h1>
+    <div id = "messages"></div>
     <div class="container">
         <form style="color:black">
             <!-- Bootstrap form with your custom fields -->
@@ -61,11 +63,11 @@
 
 
         </form>
-        <button class="btn btn-success" onclick="edit_customer(customer_id)">submit changes</button>
+        <button class="btn btn-success" onclick="edit_customer(customer_id,'put')">submit changes</button>
         <a href="customers.html"><button class="btn btn-primary">back</button></a>
 
     </div>
-    <div id ="display"></div>
+    <div id="display"></div>
     <script>
         const MY_SERVER = "http://127.0.0.1:5000"
         var customer_id = getUrlParameter("customer_id")
@@ -78,7 +80,7 @@
             return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
         }
 
-        const edit_customer = (customer_id) => {
+        const edit_customer = (customer_id,ax_method) => {
             console.log(customer_id)
             console.log("i am called")
             FormData = {
@@ -90,11 +92,19 @@
                 "new_password": password.value
             }
             console.log(customer_name.value);
+            if (ax_method == "put")
             axios.put(MY_SERVER + "/edit_customer", FormData)
                 .then(res => {
-                    console.log(res.data.message);
+                    messages.innerHTML = `<div class ="container"><h2>${res.data.message}</h2></div>`
                     showToast(res.data.message, "success")
-                    search_customer(customer_name.value)
+                    search_customer_by_id(customer_id)
+                })
+            if (ax_method == "get")
+            axios.get(MY_SERVER + "/edit_customer", FormData)
+                .then(res => {
+                    messages.innerHTML = `<div class ="container"><h2>${res.data.message}</h2></div>`
+                    showToast(res.data.message, "success")
+                    search_customer_by_id(customer_id)
                 })
         }
 
@@ -109,21 +119,17 @@
                 }
             }).showToast();
         };
-        const search_customer = (edited_name) => {
-            if (edited_name){
-                payload = { "customer_name": edited_name }
-                
-            }
-            else{
-                payload = { "customer_name": cust_name }
 
-            }
-            display.innerHTML = ""
-            axios.post(MY_SERVER + "/find_customer", payload)
-            .then(function (response) {
-          display.innerHTML = `<h1>current customers</h1>`
-          let tableHtml =
-          `<table class="table table-striped">
+
+
+        const search_customer_by_id = (customer_id) => {
+          let payload = { "customer_id": customer_id }
+          display.innerHTML = ""
+          axios.post(MY_SERVER + "/find_customer_by_id", payload)
+          .then(function (response) {
+              display.innerHTML = `<h1>current customers</h1>`
+              let tableHtml =
+              `<table class="table table-striped">
                 <thead>
                     <tr>
                         <th>ID</th>
@@ -131,32 +137,33 @@
                         <th>Email</th>
                         <th>City</th>
                         <th>Age</th>
-                  
-                    </tr>
-                </thead>
-                <tbody>`;
-
-          response.data.forEach(customer => {
-            tableHtml += `
+                        
+                        </tr>
+                        </thead>
+                        <tbody>`;
+                        
+                                tableHtml += `
           
-                    <tr>
-                        <td>${customer.id}</td>
-                        <td>${customer.customer_name}</td>
-                        <td>${customer.email}</td>
-                        <td>${customer.city}</td>
-                        <td>${customer.age}</td>
-               
-                    </tr>
-        
-        `;
-          })
-          tableHtml += ` </tbody>
-                          </table>`;
-          display.innerHTML += tableHtml
-        })
-    }
-        console.log(cust_name);
-        search_customer()
+                                <tr>
+                                    <td>${customer_id}</td>
+                        <td>${response.data.customer_name}</td>
+                        <td>${response.data.email}</td>
+                        <td>${response.data.city}</td>
+                        <td>${response.data.age}</td>
+                        
+                        </tr>
+                        
+                        `;
+                    
+                    tableHtml += ` </tbody>
+                    </table>`;
+                    display.innerHTML += tableHtml
+                })
+            }
+                
+                console.log(cust_name);
+                search_customer_by_id(customer_id)
+                edit_customer(customer_id,"get")
     </script>
 </body>
 

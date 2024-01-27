@@ -23,16 +23,14 @@
 
 <body>
   <div class="container">
-    <a href="index.html"><button class="btn btn-primary">Home Page</button></a>
+    <a href="index.html"><img src = "https://dalicanvas.co.il/wp-content/uploads/2022/10/%D7%AA%D7%9E%D7%95%D7%A0%D7%94-%D7%9B%D7%9C%D7%91-%D7%A8%D7%95%D7%9E%D7%A0%D7%98%D7%99.jpg"></a>
     <a href="login.html"><button class="btn btn-primary">Login</button></a>
-    <a href="return_book.html"><button class="btn btn-primary">Return Book</button></a>
     <a href="books.html"><button class="btn btn-primary">Books</button></a>
     <a href="customers.html"><button class="btn btn-primary">Customers</button></a>
   </div>
   <hr>
   <div class="container">
     <h1>Library Management System</h1>
-    
     <h2>Sign Up</h2>
   </div>
   <div id="display"></div>
@@ -43,6 +41,10 @@
         <input type="text" name="name" id="name" class="form-control" required><br>
       </div>
       <div class="mb-3">
+        <label for="age" class="form-label">Age:</label>
+        <input type="number" name="age" id="age" class="form-control" required><br>
+      </div>
+      <div class="mb-3">
         <label for="email" class="form-label">Email:</label>
         <input type="email" name="email" id="email" class="form-control" required><br>
       </div>
@@ -51,18 +53,20 @@
         <input type="password" name="password" id="password" class="form-control" required><br>
       </div>
       <div class="mb-3">
-
         <label for="city" class="form-label">City:</label>
         <input type="text" name="city" id="city" class="form-control" required><br>
       </div>
       <div class="mb-3">
-        <label for="age" class="form-label">Age:</label>
-        <input type="number" name="age" id="age" class="form-control" required><br>
+        <label for="role" class="form-label">Role:</label>
+        <select type="text" name="role" id="role" required>
+          <option value=1>customer</option>
+          <option value=2>emloyee</option>
+        </select>
       </div>
+      <button type = "button" class="btn btn-success" onclick="submitSignUpForm()">Sign Up</button>
   </form>
   <!-- Use a button with type="button" to handle click event -->
 
-  <button class="btn btn-success" onclick="submitSignUpForm()">Sign Up</button>
 
   </div>
 
@@ -75,12 +79,14 @@
         email: document.getElementById("email").value,
         password: document.getElementById("password").value,
         city: document.getElementById("city").value,
-        age: document.getElementById("age").value
+        age: document.getElementById("age").value,
+        role: document.getElementById("role").value
       }
-
+ console.log(document.getElementById("role").value);
       // Send a POST request using Axios
       axios.post(MY_SERVER + "/signup", formData)
         .then(response => {
+          display.innerHTML = `<div class = "container"><h1>${response.data.message}</h1></div>`
           showToast(response.data.message,"success")
           // Handle success, e.g., show a success message to the user
         })

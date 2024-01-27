@@ -120,5 +120,9 @@ thead {
     margin-top: 20px;
     border-radius: 10px;
 }
+img{
+    height: 100px;
+    width: 150px;
+}
 
 /* You can add more styles as needed for different elements in your bookstore page */

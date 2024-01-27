@@ -18,17 +18,17 @@
 
 <body>
     <div class="container">
-        <a href="index.html"><button class="btn btn-primary">Home Page</button></a>
+        <a href="index.html"><img src = "https://dalicanvas.co.il/wp-content/uploads/2022/10/%D7%AA%D7%9E%D7%95%D7%A0%D7%94-%D7%9B%D7%9C%D7%91-%D7%A8%D7%95%D7%9E%D7%A0%D7%98%D7%99.jpg"></a>
         <a href="login.html"><button class="btn btn-primary">Login</button></a>
         <a href="books.html"><button class="btn btn-primary">Books</button></a>
         <a href="customers.html"><button class="btn btn-primary">Customers</button></a>
     </div>
     <hr>
 
-    <div id=confirmation style="color:black" enctype="multipart/form-data">
+    <div id=confirmation style="color:black" >
         ></div>
     <div class="container">
-        <form style="color:black">
+        <form style="color:black" enctype="multipart/form-data">
             <!-- Bootstrap form with your custom fields -->
             <div class="mb-3">
                 <label for="book_name" class="form-label">Book name:</label>
@@ -46,6 +46,11 @@
             </div>
 
             <div class="mb-3">
+                <label for="book_cover" class="form-label">Year Published:</label>
+                <input type="file" id="book_cover" class="form-control">
+            </div>
+
+            <div class="mb-3">
                 <label for="book_type" class="form-label">Book Type:</label>
                 <select name="book_type" id="book_type" class="form-select">
                     <option value="1">Return in up to 10 days</option>
@@ -53,10 +58,8 @@
                     <option value="3">Return in up to 2 days</option>
                 </select>
             </div>
-
-
-            <button class="btn btn-success" onclick="add_book()">Add Book</button>
         </form>
+        <button class="btn btn-success" onclick="add_book()">Add Book</button>
     </div>
     <div class="container">
         <form style="color:black">
@@ -89,6 +92,7 @@
                     <thead>
                         <tr>
                             <th>ID</th>
+                            <th>book_cover</th>
                             <th>Name</th>
                             <th>Author</th>
                             <th>Type</th>
@@ -103,6 +107,7 @@
                             tableHtml += `
                     <tr>
                         <td>${book.book_id}</td>
+                        <td><img src = "${MY_SERVER}/static/images/${book.book_cover}"></td>
                         <td>${book.book_name}</td>
                         <td>${book.author}</td>
                         <td>${book.type}</td>
@@ -147,6 +152,7 @@
                                 <thead>
                                     <tr>
                                         <th>ID</th>
+                                        <th>Book_cover</th>
                                         <th>Name</th>
                                         <th>Author</th>
                                         <th>Type</th>
@@ -161,6 +167,7 @@
                             tableHtml += `
                         <tr>
                             <td>${book.book_id}</td>
+                            <td><img src = "${MY_SERVER}/static/images/${book.book_cover}"></td>
                             <td>${book.book_name}</td>
                             <td>${book.author}</td>
                             <td>${book.type}</td>
@@ -189,149 +196,163 @@
 
 
         const edit_book = (book_id) => {
-            FormData = {
-                "book_id": book_id,
-                "new_name": book_name.value,
-                "new_author": author.value,
-                "new_year_published": year_published.value,
-                "new_type": book_type.value
+
+                const formData = new FormData();
+                formData.append('book_id',book_id);
+                formData.append('new_name', document.getElementById("book_name").value);
+                formData.append('new_author', document.getElementById("author_name").value);
+                formData.append('new_year_published', document.getElementById("year_published").value);
+                formData.append('new_type', document.getElementById("book_type").value);
+
+                // Get the selected file from the input element
+                const fileInput = document.getElementById('book_cover');
+                const file = fileInput.files[0];
+
+                // Append the file to the FormData object
+                if (file) {
+                    formData.append('book_cover', file);
+                }
+                axios.put(MY_SERVER + "/edit_book", formData)
+                    .then(res => {
+                        show_books()
+                        showToast(res.data.message, "success")
+                    })
             }
-            axios.put(MY_SERVER + "/edit_book", FormData)
-                .then(res => {
-                    show_books()
-                    showToast(res.data.message, "success")
-                })
-        }
 
-        const delete_book_by_id = (bookId) => {
-            // Check if the book has associated loans
-            console.log(bookId);
-            axios.get(`${MY_SERVER}/delete_book_by_id/${bookId}`)
-                .then(response => {
-                    // If there are associated loans, ask for confirmation
-                    if (response.data.options) {
+            const delete_book_by_id = (bookId) => {
+                // Check if the book has associated loans
+                console.log(bookId);
+                axios.get(`${MY_SERVER}/delete_book_by_id/${bookId}`)
+                    .then(response => {
+                        // If there are associated loans, ask for confirmation
+                        if (response.data.options) {
 
-                        handleDeleteConfirmation(bookId);
-                    } else {
-                        // If no associated loans, proceed with deletion
+                            handleDeleteConfirmation(bookId);
+                        } else {
+                            // If no associated loans, proceed with deletion
 
-                        deleteBookWithLoans(bookId);
+                            deleteBookWithLoans(bookId);
 
-                    }
-                })
-            // .catch(error => {
-            //     console.error(error.response.data);
-            //     // Handle errors or display error messages to the user
-            // });
-        };
-        const cancelBookRemoval = () => {
-            // Clear the confirmation message
-            document.getElementById("confirmation").innerHTML = "";
-        };
+                        }
+                    })
+                // .catch(error => {
+                //     console.error(error.response.data);
+                //     // Handle errors or display error messages to the user
+                // });
+            };
+            const cancelBookRemoval = () => {
+                // Clear the confirmation message
+                document.getElementById("confirmation").innerHTML = "";
+            };
 
-        const deleteBookWithLoans = (bookId) => {
-            console.log("delete with loans was called")
-            document.getElementById("confirmation").innerHTML = "";
-            // Send a DELETE request to the backend with the bookId
-            axios.delete(`${MY_SERVER}/delete_book_by_id/${bookId}`)
-                .then(response => {
-                    // Display the server response
-                    console.log("this is wierd");
-                    console.log(response.data.message)
-                    show_books()
-                    showToast(response.data.message, "success")
-                    // You can perform additional actions or UI updates here
-                })
-            // .catch(error => {
-            //     console.error(error.response.data);
-            //     // Handle errors or display error messages to the user
-            // });
+            const deleteBookWithLoans = (bookId) => {
+                console.log("delete with loans was called")
+                document.getElementById("confirmation").innerHTML = "";
+                // Send a DELETE request to the backend with the bookId
+                axios.delete(`${MY_SERVER}/delete_book_by_id/${bookId}`)
+                    .then(response => {
+                        // Display the server response
+                         show_books()
+                        showToast(response.data.message, "success")
+                        // You can perform additional actions or UI updates here
+                    })
+                // .catch(error => {
+                //     console.error(error.response.data);
+                //     // Handle errors or display error messages to the user
+                // });
 
-            // Clear the confirmation message
-        };
+                // Clear the confirmation message
+            };
 
-        const handleDeleteConfirmation = (bookId) => {
-            // Display a confirmation message to the user
-            const confirmationMessage = `
+            const handleDeleteConfirmation = (bookId) => {
+                // Display a confirmation message to the user
+                const confirmationMessage = `
     <div class = "container">
         There are active loans on this book. Do you want to remove it and delete the associated loans?
         <button class="btn btn-danger" onclick="deleteBookWithLoans(${bookId})">Yes</button>
         <button class="btn btn-primary"onclick="cancelBookRemoval()">No</button>
     </div>
 `;
-            document.getElementById("confirmation").innerHTML = confirmationMessage;
-        };
+                document.getElementById("confirmation").innerHTML = confirmationMessage;
+            };
 
-        const add_book = () => {
-            const formData = {
-                name: document.getElementById("book_name").value,
-                author: document.getElementById("author").value,
-                year_published: document.getElementById("year_published").value,
-                type: document.getElementById("book_type").value
-            }
-            axios.post(MY_SERVER + "/add_book", formData)
-                .then(res => {
-                    console.log("i called the server");
-                    show_books()
-                    showToast(res.data.message, "success")
-                })
-            // .catch(error => {
-            //     console.log("there was an error");
-            //     console.log(error.response.data)
-            // })
+            const add_book = () => {
+                console.log("add book was called");
+                const formData = new FormData();
+                formData.append('name', document.getElementById("book_name").value);
+                formData.append('author', document.getElementById("author").value);
+                formData.append('year_published', document.getElementById("year_published").value);
+                formData.append('type', document.getElementById("book_type").value);
 
-        }
-
-        function submit_loan(book_name) {
-            // Get form data
-            let token = localStorage.getItem("access_token")
-            const formData = {
-                "book_name": book_name
-            }
-
-            // Send a POST request using Axios
-            axios.post(MY_SERVER + "/make_loan", formData, {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
+                // Get the selected file from the input element
+                const fileInput = document.getElementById('book_cover');
+                const file = fileInput.files[0];
+                
+                // Append the file to the FormData object
+                if (file) {
+                    formData.append('book_cover', file);
                 }
-            })
-                .then(response => {
-                    showToast(response.data.message, "success")
-                    // showToast(response.data.message,'success')
-                    // Handle success, e.g., show a success message to the user
-                    console.log("somthing is wrng with tost");
-                })
-                .catch(error => {
-                    console.log("there was 4-1")
-                    showToast("you are not logged in", "err")
-                    // Handle error, e.g., show an error message to the user
-                });
-        }
+                axios.post(MY_SERVER + "/add_book", formData)
+                    .then(res => {
+                        console.log("i called the server");
+                        show_books()
+                        showToast(res.data.message, "success")
+                    })
+                // .catch(error => {
+                //     console.log("there was an error");
+                //     console.log(error.response.data)
+                // })
 
+            }
 
-        const showToast = (message, type) => {
-            Toastify({
-                text: message,
-                className: "info",
-                position: "center",
-                gravity: "bottom",
-                offset: {
-                    y: window.innerHeight - 50, // Set the desired offset from the bottom
-                },
-                style: {
-                    background: type === "success" ? "linear-gradient(to right, #00b09b, #96c93d)" : "linear-gradient(to right, #red, #blue)",
-                    width: "300px",
-                    padding: "15px", // Adjust padding to control height
+            function submit_loan(book_name) {
+                // Get form data
+                let token = localStorage.getItem("access_token")
+                const formData = {
+                    "book_name": book_name
                 }
-            }).showToast();
-        };
 
-        const show_loans = () => {
-            axios.get(MY_SERVER + "/loans")
-                .then(res => {
-                    display.innerHTML = `<h1>ongoing loans</h1>`
-                    let laonsTable = `<table class="table table-striped">
+                // Send a POST request using Axios
+                axios.post(MY_SERVER + "/make_loan", formData, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    }
+                })
+                    .then(response => {
+                        showToast(response.data.message, "success")
+                        // showToast(response.data.message,'success')
+                        // Handle success, e.g., show a success message to the user
+                        console.log("somthing is wrng with tost");
+                    })
+                    .catch(error => {
+                        console.log("there was 4-1")
+                        showToast("you are not logged in", "err")
+                        // Handle error, e.g., show an error message to the user
+                    });
+            }
+
+
+            const showToast = (message, type) => {
+                console.log("toast is called")
+                Toastify({
+                    text: message,
+                    className: "info",
+                    position: "button",
+                    gravity: "bottom",
+                   
+                    style: {
+                        background: type === "success" ? "linear-gradient(to right, #00b09b, #96c93d)" : "linear-gradient(to right, #red, #blue)",
+                       
+                    }
+                }).showToast();
+            };
+
+            const show_loans = () => {
+                axios.get(MY_SERVER + "/loans")
+                    .then(res => {
+                        display.innerHTML = `<h1>ongoing loans</h1>`
+                        let laonsTable = `<table class="table table-striped">
                 <thead>
                     <tr>
                         <th>loan ID</th>
@@ -342,25 +363,25 @@
                     </tr>
                 </thead>
                 <tbody>`;
-                    res.data.list_of_loans.forEach(loan => {
-                        laonsTable += `
-                    <tr>
-                        <td>${loan.loan_id}</td>
-                        <td>${loan.customer_name}</td>
-                        <td>${loan.book_name}</td>
-                        <td>${loan.time_left}</td>
+                        res.data.list_of_loans.forEach(loan => {
+                            laonsTable += `
+                    <tr><
+                        <h3><td>${loan.loan_id}</td></h3>
+                        <td><h3>${loan.customer_name}</h3></td>
+                        <td><h3>${loan.book_name}</h3></td>
+                        <td><h3>${loan.time_left}</h3></td>
                         <td>
                             <button class="btn btn-danger" onclick="delete_loan_by_id(${loan.loan_id})">Delete</button>
                         </td>
                     </tr>
           
          `})
-                    laonsTable += ` </tbody>
+                        laonsTable += ` </tbody>
                           </table> `;
-                    display.innerHTML += laonsTable
+                        display.innerHTML += laonsTable
 
-                    display.innerHTML += "<h1>late loans</h1>"
-                    let late_loans_table = `<table class="table table-striped">
+                        display.innerHTML += "<h1>late loans</h1>"
+                        let late_loans_table = `<table class="table table-striped">
                 <thead>
                     <tr>
                         <th>loan ID</th>
@@ -371,8 +392,8 @@
                     </tr>
                 </thead>
                 <tbody>`;
-                    res.data.late_loans.forEach(loan => {
-                        late_loans_table += `
+                        res.data.late_loans.forEach(loan => {
+                            late_loans_table += `
                     <tr>
                         <td>${laon.loan_id}</td>
                         <td>${loan.customer_name}</td>
@@ -384,21 +405,28 @@
                     </tr>
           
          `})
-                    late_loans_table += ` </tbody>
+                        late_loans_table += ` </tbody>
                           </table> `;
-                    display.innerHTML += late_loans_table
-                })
-        };
-        
-    const delete_loan_by_id = (loan_id) => {
-      axios.delete(MY_SERVER + `/delete_loan_by_id/${loan_id}`)
-        .then(response => {
-            show_loans()
-          // console.log(response.data)
-          showToast( response.message,"success")
-        })
+                        display.innerHTML += late_loans_table
+                    })
+            };
 
+            const delete_loan_by_id = (loan_id) => {
+                axios.delete(MY_SERVER + `/delete_loan_by_id/${loan_id}`)
+                    .then(response => {
+                        show_loans()
+                        showToast(response.message, "success")
+                    })
+
+            }
+
+            document.addEventListener("DOMContentLoaded", function () {
+    // Check if the page is being loaded for the first time
+    if (performance.navigation.type === 1) {
+        // ty[e ===1 meens This is a fresh page load so i show books
+        show_books();
     }
+});
     </script>
 </body>
 

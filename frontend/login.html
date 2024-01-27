@@ -16,7 +16,7 @@
 </head>
 <body>
   <div class="container">
-    <a href="index.html"><button class="btn btn-primary">Home Page</button></a>
+    <a href="index.html"><img src = "https://dalicanvas.co.il/wp-content/uploads/2022/10/%D7%AA%D7%9E%D7%95%D7%A0%D7%94-%D7%9B%D7%9C%D7%91-%D7%A8%D7%95%D7%9E%D7%A0%D7%98%D7%99.jpg"></a>
     <a href="login.html"><button class="btn btn-primary">Login</button></a>
     <a href="books.html"><button class="btn btn-primary">Books</button></a>
     <a href="customers.html"><button class="btn btn-primary">Customers</button></a>
@@ -51,9 +51,9 @@
             // Send a POST request using Axios
             axios.post(MY_SERVER + "/login", formData)
                 .then(response => {
-                    console.log(response.data)
+                    console.log(response.data.access_token)
                     localStorage.setItem("access_token",response.data.access_token)
-                    display.innerHTML = "<h1 style ='color:black'>login successful</h1>"
+                    display.innerHTML = `<h1 style ='color:black'>${response.data.message}</h1> <a href ="index.html?customer_name=${response.data.customer_name}"><button class = "btn btn-primary">back to home page</button></a>`
                   // Handle success, e.g., show a success message to the user
                 })
                 // .catch(error => {

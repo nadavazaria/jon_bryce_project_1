@@ -13,9 +13,9 @@ import os
 
 # # connect to the mysql workbench  
 # con = mysql.connector.connect(
-#     host = host,
-#     user = user,
-#     password = password
+#     host = "localhost",
+#     user = "root",
+#     password = "1234"
 # )
 # cur = con.cursor()
 # # make a new schema called library using basic SQL 
@@ -27,6 +27,8 @@ import os
 
 # connecting my app to flask and to the mysql database that we just created 
 app = Flask(__name__)
+UPLOAD_FOLDER = 'static/images'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config["SQLALCHEMY_DATABASE_URI"] = "mysql://root:1234@localhost/library"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["JWT_SECRET_KEY"] = "FUCKthatSHIT"
@@ -45,6 +47,7 @@ class Book(db.Model):
     author = db.Column(db.String(50),nullable = False)
     year_published = db.Column(db.Integer,nullable = False)
     type = db.Column(db.Integer,nullable = False)
+    book_cover = db.Column(db.String(100),default = "url_for_placeholder")
     # i made a connection/relationship between the book and the loan table 
     loans = db.relationship("Loan",backref = "book")
     # this helps view the book when we call on it 
@@ -59,6 +62,7 @@ class Customer(db.Model):
     salt = db.Column(db.LargeBinary,nullable = False)
     city  = db.Column(db.String(50),nullable = False)
     age = db.Column(db.Integer,nullable = False)
+    role = db.Column(db.Integer,nullable = False)
     #connect to loans and enable the loan object created to reach the corresponding customer's data 
     loans = db.relationship("Loan",backref = "customer")
    
@@ -102,25 +106,42 @@ def home_page():
 
 
 
-@app.route("/add_book", methods = ["POST"])
+@app.route('/add_book', methods=['POST'])
 def add_book():
-    
-    book_name = request.json["name"]
-    author = request.json["author"]
-    year_published = request.json["year_published"]
-    book_type = request.json["type"]
+    # Get form data
+    book_name = request.form.get('name')
+    author = request.form.get('author')
+    year_published = request.form.get('year_published')
+    book_type = request.form.get('type')
     existing_book = Book.query.filter_by(name=book_name).first()
 
     if existing_book:
-
+        # check for overlaping book names (no there are no two similarly named books...)
         return {"message": "this book is already registered"}
-        # If no existing record, create a new one
-    new_book = Book(name=book_name, author=author, year_published=year_published, type=book_type)
+    
+    if 'book_cover' not in request.files:
+    # Check if the POST request has the file part
+        return jsonify({"error":"there is no uploaded file"}),400
+    file = request.files['book_cover']
+ 
+    if file.filename == '':
+    # If the user does not select a file, the browser might submit an empty file
+        return jsonify({'error': 'No selected file'}), 400
+
+        
+
+    # Generate a unique  identifier for the file (book name is a unique field)
+    unique_filename = f"{book_name}_cover_pic.jpg"
+
+    # Save the file to the upload folder with the unique filename
+    file.save(os.path.join(app.config['UPLOAD_FOLDER'], unique_filename))
+    new_book = Book(name = book_name,author = author,year_published = year_published,type = book_type,book_cover = unique_filename)
     db.session.add(new_book)
     db.session.commit()
-    return {"message": "Book added successfully"}
-      
-
+    # Additional logic for saving book details to a database or performing other actions
+    # ...
+    return jsonify({'message': 'Book added successfully', 'filename': unique_filename}), 200
+     
     
 
 
@@ -136,11 +157,12 @@ def signup():
         
         if Customer.query.filter_by(email = email).count() > 0:
             return{"message":"email already in use"}
-        new_customer = Customer(name = customer_name,email = email,password = password,salt = salt,city = city,age = age)
+        new_customer = Customer(name = customer_name,email = email,password = password,salt = salt,city = city,age = age,role = request.json["role"])
         db.session.add(new_customer)
         db.session.commit()
         return {"message": "customer added successfuly" }
     return {"message: whould you like to register to our library?"}
+
 
 @app.route("/login", methods = ["GET","POST"])
 def login():
@@ -155,7 +177,8 @@ def login():
             hashed_password_str = hashed_password.decode("utf-8")
             if pwd == hashed_password_str:
                 access_token = create_access_token(identity=email)
-                return jsonify({"access_token":access_token})
+                output = {"access_token":access_token,"message":f"logged in successfully hello {customer.name}","customer_name":customer.name}
+                return jsonify(output)
 
         return {"message": "email or password not correct" }
 
@@ -189,7 +212,8 @@ def all_books():
         list.append({"book_name":book.name,
                      "author":book.author,
                      "type":book.type,
-                     "book_id":book.id})
+                     "book_id":book.id,
+                     "book_cover":book.book_cover})
     return jsonify(list)
 
 
@@ -289,7 +313,7 @@ def find_book():
         
         for book in books_to_find: 
             # ic(book)
-            output.append({"book_name":book.name,"author":book.author,"year_published":book.year_published,"book_id":book.id})
+            output.append({"book_name":book.name,"author":book.author,"year_published":book.year_published,"book_id":book.id,"book_cover":book.book_cover})
             ic(output)
         # if len(books_to_find) == 0:
         #     return {"message":"no such books here"}
@@ -302,9 +326,13 @@ def edit_customer():
         customer_to_edit = request.json["customer_id"]
         edited_customer = Customer.query.get(customer_to_edit)
         if edited_customer:
+            new_email = request.json["new_email"]
+            invalid_email = Customer.query.filter_by(email = new_email).first()
+            if invalid_email:
+                if invalid_email.id != customer_to_edit:
+                    return {"message":"this email is already in use"}         
             new_name = request.json["new_name"]
             new_city =request.json["new_city"]
-            new_email = request.json["new_email"]         
             new_age =request.json["new_age"]
             new_password = request.json["new_password"]
             if new_name !="":
@@ -327,29 +355,80 @@ def edit_customer():
 def edit_book():
     ic("in edit")
     book_id = request.json["book_id"]
-    valid_name = Book.query.filter_by(name = request.json["new_name"]).first()
-    if valid_name:    
-        if valid_name.id != book_id:
+    exiting_name = Book.query.filter_by(name = request.json["new_name"]).first()
+    # checking if the name that they are trying to input is not taken by a different book
+    if exiting_name:    
+        # making sure not to raise an error if they just dont want to change the name of the edited book 
+        if exiting_name.id != book_id:
             return{"message":"the book name your trying to input is already taken"}
     edited_book = Book.query.get(book_id)
-    if edited_book:
-        new_name = request.json["new_name"]
-        new_author = request.json["new_author"]
-        new_year_published = request.json["new_year_published"]
-        new_type = request.json["new_type"]
-        ic(new_type,new_year_published,new_author,new_name)
-        if new_name != "":
-            edited_book.name = new_name
-        if new_author != "":
-            edited_book.author = new_author
-        if new_year_published != "":
-            edited_book.year_published = new_year_published
-        if new_type != "":
-            edited_book.type = new_type
-        db.session.commit()
-        return {"message":"book edited successfuly"}
-    return{"message":"no such book here"}
+    
+    new_name = request.form.get["new_name"]
+    new_author = request.form.get["new_author"]
+    new_year_published = request.form.get["new_year_published"]
+    new_type = request.form.get["new_type"]
 
+    ic(new_type,new_year_published,new_author,new_name)
+        
+    if 'book_cover' not in request.files:
+    # Check if the POST request has the file part
+        return jsonify({"error":"there is no uploaded file"}),400
+    if file.filename == '':
+    # If the user does not select a file, the browser might submit an empty file
+        return jsonify({'error': 'No selected file'}), 400
+    file = request.files['book_cover']
+    # Generate a unique  identifier for the file (book name is a unique field)
+    unique_filename = f"{new_name}_cover_pic.jpg"
+    # Save the file to the upload folder with the unique filename
+    file.save(os.path.join(app.config['UPLOAD_FOLDER'], unique_filename))
+
+
+
+    if new_name != "":
+        edited_book.name = new_name
+    if new_author != "":
+        edited_book.author = new_author
+    if new_year_published != "":
+        edited_book.year_published = new_year_published
+    if new_type != "":
+        edited_book.type = new_type
+
+    db.session.commit()
+    return {"message":"book edited successfuly"}
+    
+
+
+@app.route("/find_customer_by_id",methods = ["POST","GET"])
+def find_customer_by_id():
+    customer = request.json["customer_id"]
+    customer = Customer.query.get(customer)
+    
+    if not customer:
+        return {"message":"no such customer here "}
+    output ={"customer_id":customer.id,
+            "customer_name":customer.name,
+            "city":customer.city,
+            "age":customer.age ,
+            "email":customer.email}
+    ic(output)
+    return jsonify(output)
+
+@app.route("/get_logged_customer", methods=["POST", "GET"])
+@jwt_required()
+def get_logged_customer():
+    email = ic(get_jwt_identity())
+    customer = Customer.query.filter_by(email=email).first()  # Use .first() to get the first result
+    if not customer:
+        return {"message": "no such customer here "}
+    output = {
+        "customer_id": customer.id,
+        "customer_name": customer.name,
+        "city": customer.city,
+        "age": customer.age,
+        "email": customer.email
+    }
+    ic(output)
+    return jsonify(output)
 
 @app.route("/find_customer",methods = ["POST","GET"])
 def find_customer():
@@ -357,11 +436,11 @@ def find_customer():
     customer = Customer.query.filter_by(name = customer).all()
     customers_searched = []
     for customer in customer:
-        customer_id = customer.id
-        customer_name = customer.name
-        city = customer.city
-        age = customer.age 
-        customers_searched.append({"customer_id":customer_id,"customer_name":customer_name,"city":city,"age":age})
+        customers_searched.append({"customer_id":customer.id,
+                                   "customer_name":customer.name,
+                                   "city":customer.city,
+                                   "age":customer.age ,
+                                   "email":customer.email})
     ic(customers_searched)
     if len(customers_searched )== 0:
         return {"message":"no such customer here "}
