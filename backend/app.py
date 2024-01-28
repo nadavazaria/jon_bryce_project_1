@@ -242,7 +242,7 @@ def all_laons():
         if loan.return_date > datetime.now():
             list_of_loans.append({"loan_id":loan.id,"customer_name":customer.name,"book_name":loaned_book.name,"time_left":f"{-time_left} days"})
         else:
-            late_loans.append({"customer_name":customer.name,"book_name":loaned_book.name,"late_by":f"{time_left} days"})
+            late_loans.append({"loan_id":loan.id,"customer_name":customer.name,"book_name":loaned_book.name,"time_left":f"{time_left} days"})
         
     result = {
         "list_of_loans":list_of_loans,
