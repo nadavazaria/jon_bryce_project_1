@@ -17,26 +17,23 @@ py -m venv env
 Activate the virtual environment:
 
 ```cmd
-Copy code
 env\Scripts\activate
 ```
 Install the required dependencies:
 
 ```cmd
-Copy code
 pip install -r requirements.txt
-```
 ```
 ## connecting your db
    in order to connect to the db please enter your mysql credentials into the test.py file inside of backend
    lines 19 -21
    after doing so run test.py to create the db and a few basic entrys to the bd 
    ```cmd
-    test.py
+    py test.py
 ```
    and then run app.py to start the server  
    ```cmd
-       app.py
+       py app.py
 ``` 
 ## Pages content
     There are four main web pages associated with my library:
