@@ -8,21 +8,24 @@ To get started, clone this Git repository using the following command:
 
 ```cmd
 git clone https://github.com/nadavazaria/jon_bryce_project_1.git
+```
 Create a virtual environment:
 
-cmd
+```cmd
 py -m venv env
+```
 Activate the virtual environment:
 
-cmd
+```cmd
 Copy code
 env\Scripts\activate
+```
 Install the required dependencies:
 
-cmd
+```cmd
 Copy code
 pip install -r requirements.txt
-
+```
 ```
 ## connecting your db
    in order to connect to the db please enter your mysql credentials into the test.py file inside of backend
