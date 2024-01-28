@@ -6,40 +6,41 @@ Copy code
 
 To get started, clone this Git repository using the following command:
 
-```bash
-git clone [git_url]
+```cmd
+git clone https://github.com/nadavazaria/jon_bryce_project_1.git
+```
 Create a virtual environment:
 
-bash
-Copy code
+```cmd
 py -m venv env
+```
 Activate the virtual environment:
 
-bash
-Copy code
+```cmd
 env\Scripts\activate
+```
 Install the required dependencies:
 
-bash
-Copy code
+```cmd
 pip install -r requirements.txt
-
 ```
 ## connecting your db
-    to connect a mysql db pleas remove the notaition mark 
-    from lines 14 - 25
-    in lines 16 17 18 submit your mtsql credentials
-    same for line 32
-
-## Pages
+   in order to connect to the db please enter your mysql credentials into the test.py file inside of backend
+   lines 19 -21
+   after doing so run test.py to create the db and a few basic entrys to the bd 
+   ```cmd
+    py test.py
+```
+   and then run app.py to start the server  
+   ```cmd
+       py app.py
+``` 
+## Pages content
     There are four main web pages associated with my library:
-
     Index: Home page for customers
     Login: Login page
     Books: A place for an admin to view, add, and edit books
     Customers: A place for an admin to add new customers and manage existing ones
-### Methods
-    All the methods are listed as buttons on the web pages, designed to be intuitive and easy to use. I recommend exploring the web pages to familiarize yourself with the functionality. For testing purposes, there is a test.py file that you can run to create a few books and customers. To view their email addresses on the web page, navigate to "Customers" using the navbar at the top of the page (the dog picture links to index.html), and then display them on the screen using the button. The password for all of them is '123'.
 
 ### List of Actions
     Books
