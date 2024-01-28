@@ -47,7 +47,7 @@ class Book(db.Model):
     author = db.Column(db.String(50),nullable = False)
     year_published = db.Column(db.Integer,nullable = False)
     type = db.Column(db.Integer,nullable = False)
-    book_cover = db.Column(db.String(100),default = "url_for_placeholder")
+    book_cover = db.Column(db.String(200),default = "url_for_placeholder")
     # i made a connection/relationship between the book and the loan table 
     loans = db.relationship("Loan",backref = "book")
     # this helps view the book when we call on it 
@@ -167,15 +167,19 @@ def signup():
 @app.route("/login", methods = ["GET","POST"])
 def login():
     if request.method == "POST":
+        # i made the login with the email field because it is unique
         email = request.json["email"]
         password = request.json["password"]
+
         customer = Customer.query.filter_by(email = email).first()
         if customer:
             pwd = customer.password
             salt = customer.salt
+            # cheking the password given using the customers unique salt and comparing to the saved password
             trash,hashed_password = hash_password(password,salt) 
             hashed_password_str = hashed_password.decode("utf-8")
             if pwd == hashed_password_str:
+                # providing an access token and some basic credentials to the client for use 
                 access_token = create_access_token(identity=email)
                 output = {"access_token":access_token,"message":f"logged in successfully hello {customer.name}","customer_name":customer.name}
                 return jsonify(output)
@@ -191,6 +195,7 @@ def login():
 @jwt_required()
 def make_loan():
     book_name = request.json["book_name"]
+    # checking if the customer is logged in so that i can loan on his name 
     email = ic(get_jwt_identity())
     customer = Customer.query.filter_by(email = email).first()
     book_to_loan = Book.query.filter_by(name = book_name).first()
@@ -208,6 +213,7 @@ def make_loan():
 def all_books():
     listed_books = Book.query.all()
     list = []
+    # for each book in the db i add its info to a list and then return it to client 
     for book in listed_books:
         list.append({"book_name":book.name,
                      "author":book.author,
@@ -219,15 +225,20 @@ def all_books():
 
 @app.route("/loans")
 def all_laons():
+    # getting all the loans to temp 
     temp = Loan.query.all()
+    #  macking different lists for late and not late loans
     list_of_loans = []
     late_loans = []
+    # looping on all the loans 
     for loan in temp:
+        # extracting the needed info 
         customer = Customer.query.get(loan.custID)
         loaned_book = Book.query.get(loan.bookID)
         loan.return_date  = datetime.combine(loan.return_date, datetime.min.time())
         difference = datetime.now() - loan.return_date
         time_left = floor(difference.total_seconds()/(60*60*24))
+        # adding the logic to divide to two lists 
         if loan.return_date > datetime.now():
             list_of_loans.append({"loan_id":loan.id,"customer_name":customer.name,"book_name":loaned_book.name,"time_left":f"{-time_left} days"})
         else:
@@ -237,7 +248,7 @@ def all_laons():
         "list_of_loans":list_of_loans,
         "late_loans": late_loans
     }
-
+    # returning the  divided list
     return jsonify(result)
 
 
@@ -247,6 +258,7 @@ def show_customers():
     temp = Customer.query.all()
     customers = []
     for customer in temp:
+        # creating an enry for each customer 
         customers.append({"id":customer.id,
                           "customer_name":customer.name,
                           "email":customer.email,
@@ -256,12 +268,15 @@ def show_customers():
     return jsonify(customers)
 
 
-
+# this method is irrelevent but im too afraid to delete it 
+# plus im a little sentimental cause i wrote it from scratch and its obseleat now ...
 @app.route("/return_book",methods = ["DELETE","POST"])
 def book_update():
+    # extracting info
     book_to_return = Book.query.filter_by(name = request.json["book_name"]).first()
     returning_customer = Customer.query.filter_by(email = request.json["email"]).first()
     loan = Loan.query.filter_by(bookID = book_to_return.id,custID = returning_customer.id).first()
+    # macking sure they actually exist in the db 
     if book_to_return and returning_customer and loan:    
         number_of_loans = Loan.query.filter_by(bookID = book_to_return.id,custID = returning_customer.id).count()
 
@@ -306,18 +321,18 @@ def find_book():
     if request.method == "POST":    
         book_name = request.json["book_name"]
         books_to_find = Book.query.filter_by(name = book_name).all()
-        # ic(book_name)
+        # macking sure the book exists
         if len(books_to_find) == 0:
             return  {"message":"book not found"}
         output = []
-        
+        # making a list and adding relevent books to it  
         for book in books_to_find: 
             # ic(book)
             output.append({"book_name":book.name,"author":book.author,"year_published":book.year_published,"book_id":book.id,"book_cover":book.book_cover})
             ic(output)
-        # if len(books_to_find) == 0:
-        #     return {"message":"no such books here"}
+        # return the list
         return jsonify(output)
+    # returm the user back to home page
     return render_template("index.html")
 
 @app.route("/edit_customer",methods = ["PUT","GET"])
@@ -325,12 +340,15 @@ def edit_customer():
     if request.method == "PUT":
         customer_to_edit = request.json["customer_id"]
         edited_customer = Customer.query.get(customer_to_edit)
+        # finding the custoemr in the db
         if edited_customer:
             new_email = request.json["new_email"]
+            # making sure the input value of email is not taken
             invalid_email = Customer.query.filter_by(email = new_email).first()
             if invalid_email:
                 if invalid_email.id != customer_to_edit:
-                    return {"message":"this email is already in use"}         
+                    return {"message":"this email is already in use"}   
+            # editing the relevent fields if there is no input the field should remain the same 
             new_name = request.json["new_name"]
             new_city =request.json["new_city"]
             new_age =request.json["new_age"]
@@ -348,6 +366,7 @@ def edit_customer():
             db.session.commit()
             return {"message":"customer edited successfuly"}
         return {"message":"no such customer here"}
+    # gives instructions when first called 
     return {"message":"to edit a customer, input his new information in the relevent fields and press submit"}
 
 
@@ -382,8 +401,7 @@ def edit_book():
     # Save the file to the upload folder with the unique filename
     file.save(os.path.join(app.config['UPLOAD_FOLDER'], unique_filename))
 
-
-
+            # editing the relevent fields if there is no input the field should remain the same 
     if new_name != "":
         edited_book.name = new_name
     if new_author != "":
@@ -397,7 +415,7 @@ def edit_book():
     return {"message":"book edited successfuly"}
     
 
-
+# self explanitory
 @app.route("/find_customer_by_id",methods = ["POST","GET"])
 def find_customer_by_id():
     customer = request.json["customer_id"]
@@ -412,6 +430,7 @@ def find_customer_by_id():
             "email":customer.email}
     ic(output)
     return jsonify(output)
+
 
 @app.route("/get_logged_customer", methods=["POST", "GET"])
 @jwt_required()
@@ -466,7 +485,7 @@ def remove_book():
         return{"message":"no such book here"}
 
 
-# i need to make a query to the client that indicates if he whants to delete all associatef loans ass well
+# i need to make a query to the client that indicates if he whants to delete all associated loans as well
 @app.route("/remove_customer",methods = ["DELETE"])
 def remove_customer():
     customer_to_remove = request.json["customer_name"]

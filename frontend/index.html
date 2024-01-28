@@ -249,7 +249,7 @@ const show_loans = () => {
                         display.innerHTML += tableHtml;
                     } else {
                         // Display a message if there are no books in stock
-                        display.innerHTML = `<h2 >no book named ${book_to_search}</h2 style = "color:black">`;
+                        display.innerHTML = `<div style = "color:black" class = "container"><h2 >no book named ${book_to_search.value}</h2></div>`;
                     }
                 })
         }

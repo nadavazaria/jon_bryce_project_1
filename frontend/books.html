@@ -25,8 +25,6 @@
     </div>
     <hr>
 
-    <div id=confirmation style="color:black" >
-        ></div>
     <div class="container">
         <form style="color:black" enctype="multipart/form-data">
             <!-- Bootstrap form with your custom fields -->
@@ -34,7 +32,7 @@
                 <label for="book_name" class="form-label">Book name:</label>
                 <input type="text" id="book_name" class="form-control">
             </div>
-
+            
             <div class="mb-3">
                 <label for="author" class="form-label">Author:</label>
                 <input type="text" id="author" class="form-control">
@@ -49,7 +47,7 @@
                 <label for="book_cover" class="form-label">Year Published:</label>
                 <input type="file" id="book_cover" class="form-control">
             </div>
-
+            
             <div class="mb-3">
                 <label for="book_type" class="form-label">Book Type:</label>
                 <select name="book_type" id="book_type" class="form-select">
@@ -68,14 +66,16 @@
                 <label for="book_to_search" class="form-label">search book by name</label>
                 <input type="text" id="book_to_search" class="form-control">
             </div>
-
+            
         </form>
         <button class="btn btn-success" onclick="search_book(book_to_search)">Search</button>
         <button class="btn btn-success" onclick="show_books()">Show All Books</button>
         <button class="btn btn-success" onclick="show_loans()">Show All loans</button>
     </div>
+    <div id=confirmation style="color:black" >
+        ></div>
     <div id=display></div>
-
+    
     <script>
         const MY_SERVER = "http://127.0.0.1:5000"
         const show_books = () => {
@@ -189,7 +189,7 @@
                         display.innerHTML += tableHtml;
                     } else {
                         // Display a message if there are no books in stock
-                        display.innerHTML = `<h2 >no book named ${book_to_search}</h2 style = "color:black">`;
+                        display.innerHTML = `<div style = "color:black" class = "container"><h2 >no book named ${book_to_search.value}</h2></div>`;
                     }
                 })
         }
@@ -395,7 +395,7 @@
                         res.data.late_loans.forEach(loan => {
                             late_loans_table += `
                     <tr>
-                        <td>${laon.loan_id}</td>
+                        <td>${loan.loan_id}</td>
                         <td>${loan.customer_name}</td>
                         <td>${loan.book_name}</td>
                         <td>${loan.time_left}</td>
