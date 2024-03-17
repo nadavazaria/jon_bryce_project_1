@@ -19,6 +19,11 @@ Activate the virtual environment:
 ```cmd
 env\Scripts\activate
 ```
+move to relevent directory 
+```cmd
+cd jon_bryce_project_1
+
+```
 Install the required dependencies:
 
 ```cmd
