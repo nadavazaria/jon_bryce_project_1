@@ -29,7 +29,7 @@ import os
 app = Flask(__name__)
 UPLOAD_FOLDER = 'static/images'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config["SQLALCHEMY_DATABASE_URI"] = "mysql://root:1234@localhost/library"
+app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:///yourdatabase.db'
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["JWT_SECRET_KEY"] = "FUCKthatSHIT"
 CORS(app)
@@ -99,8 +99,8 @@ def hash_password(password,salt = None):
 
 # macking the crud
 @app.route("/")
-@jwt_required()
 def home_page():
+    db.create_all()
     return "this will be nice eventualy"
 
 
@@ -562,7 +562,6 @@ def delete_customer_by_id(customer_id):
 
 
 if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()
+    db.create_all()
     app.run(debug=True)
     os.system('cls')
